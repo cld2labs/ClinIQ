@@ -200,7 +200,7 @@ docker-compose up --build --force-recreate
 ```
 clinical-rag/
 ├── README.md                 # Main documentation
-├── LICENSE                   # 
+├── LICENSE  
 ├── .gitignore               # Git ignore rules
 │
 ├── backend/                  # Backend Python application
