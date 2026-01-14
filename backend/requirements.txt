@@ -1,0 +1,12 @@
+flask
+flask-cors
+openai
+chromadb
+PyPDF2
+python-docx
+python-dotenv
+tiktoken
+rank-bm25
+numpy
+scikit-learn
+nltk
