@@ -1,6 +1,8 @@
-# 🏥 ClinIQ - Clinical Knowledge Assistant
+# 🏥 Clinical Q&A Driven by Your Documents
 
 **Transform clinical documents into an intelligent question-answering system using AI-powered RAG (Retrieval-Augmented Generation)**
+
+## Overview
 
 ClinIQ is a modern web application that allows healthcare professionals to upload clinical documents and ask questions in plain English. Using advanced AI techniques including hybrid search, reranking, and OpenAI's GPT models, it provides accurate, evidence-based answers with source citations.
 
