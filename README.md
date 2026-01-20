@@ -114,7 +114,7 @@ graph TB
 
 ```bash
 git clone <your-repo-url>
-cd clinical-rag
+cd CliniQ
 ```
 
 #### Step 2: Install Backend Dependencies
