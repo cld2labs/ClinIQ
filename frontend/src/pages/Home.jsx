@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   HeartPulse
 } from 'lucide-react';
+import RAGPipelineInfo from '../components/RAGPipelineInfo';
 
 /**
  * THE WELCOME MAT:
@@ -152,6 +153,9 @@ export const Home = () => {
           ))}
         </div>
       </section>
+
+      {/* RAG PIPELINE SECTION: Showcase advanced AI techniques */}
+      <RAGPipelineInfo />
 
       {/* HOW IT WORKS SECTION: Looping over the 'steps' list */}
       <section>

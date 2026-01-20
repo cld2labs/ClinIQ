@@ -35,8 +35,16 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
     e.preventDefault(); // Stop the page from refreshing (standard web behavior).
     if (!input.trim() || isLoading) return;
 
-    if (!apiKey) {
-      toast.error('Please enter your OpenAI API key');
+    // Double-check API key with trim to ensure it's not just whitespace
+    const trimmedKey = apiKey?.trim();
+    if (!trimmedKey || trimmedKey.length < 10) {
+      toast.error('Please enter a valid OpenAI API key first (starts with "sk-")');
+      return;
+    }
+
+    // Additional validation - check if it starts with sk-
+    if (!trimmedKey.startsWith('sk-')) {
+      toast.error('Invalid API key format. OpenAI keys start with "sk-"');
       return;
     }
 
@@ -60,13 +68,12 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
     setIsLoading(true);
 
     try {
-      let fullContent = '';
-
       /**
        * We call our API service. Notice 'onChunk' - this is a "callback".
-       * Every time the server sends a tiny piece of the answer, this code runs.
+       * Backend sends in order: thinking -> content -> metadata (citations)
        */
-      await queryDocuments(userMessage, apiKey, {
+      // Use trimmed key to avoid whitespace issues
+      await queryDocuments(userMessage, trimmedKey, {
         history: messages, // Pass conversation history for memory
         useHybridSearch: config.useHybridSearch,
         useReranker: config.useReranker,
@@ -74,46 +81,67 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
         onChunk: (chunk) => {
           /**
            * PROCESSING THE RESPONSE:
-           * The assistant sends its answer in small pieces.
-           * We separate the 'Thinking' part from the 'Final Answer'
-           * and keep track of the page-level citations.
+           * Backend streams in this order:
+           * 1. "citations" - all retrieved sources (sent first)
+           * 2. "thinking" chunks - AI reasoning process (stream character by character)
+           * 3. "content" chunks - final answer (stream character by character)
+           * 4. "clear_citations" - clear citations if no answer found
            */
-          if (chunk.type === 'metadata') {
-            // If the chunk contains citations (source info), save them.
+          if (chunk.type === 'citations' || chunk.type === 'metadata') {
+            // Citations received FIRST (all retrieved sources)
             setMessages((prev) => {
-              const newMessages = [...prev];
-              newMessages[newMessages.length - 1].citations = chunk.citations;
-              return newMessages;
+              const lastIndex = prev.length - 1;
+              const lastMessage = prev[lastIndex];
+              
+              return [
+                ...prev.slice(0, lastIndex),
+                {
+                  ...lastMessage,
+                  citations: chunk.citations
+                }
+              ];
+            });
+          } else if (chunk.type === 'thinking') {
+            // APPEND thinking chunks as they stream in
+            setMessages((prev) => {
+              const lastIndex = prev.length - 1;
+              const lastMessage = prev[lastIndex];
+              
+              return [
+                ...prev.slice(0, lastIndex),
+                {
+                  ...lastMessage,
+                  thinking: (lastMessage.thinking || '') + chunk.content
+                }
+              ];
             });
           } else if (chunk.type === 'content') {
-            // Append the new text piece to our total answer.
-            fullContent += chunk.content;
-
-            let displayAnswer = fullContent;
-            let displayThinking = '';
-
-            /**
-             * The AI sends thinking and answer together. 
-             * We split them so we can show them in different boxes on the screen.
-             */
-            if (config.showThinking) {
-              if (fullContent.includes('Final Answer:')) {
-                const parts = fullContent.split('Final Answer:');
-                displayThinking = parts[0].trim();
-                displayAnswer = parts[1].trim();
-              } else {
-                displayThinking = fullContent.trim();
-                displayAnswer = '';
-              }
-            }
-
-            // Update the last message in the list with the latest text.
+            // APPEND answer chunks as they stream in
             setMessages((prev) => {
-              const newMessages = [...prev];
-              const lastMessage = newMessages[newMessages.length - 1];
-              lastMessage.content = displayAnswer;
-              lastMessage.thinking = displayThinking;
-              return newMessages;
+              const lastIndex = prev.length - 1;
+              const lastMessage = prev[lastIndex];
+              
+              return [
+                ...prev.slice(0, lastIndex),
+                {
+                  ...lastMessage,
+                  content: (lastMessage.content || '') + chunk.content
+                }
+              ];
+            });
+          } else if (chunk.type === 'clear_citations') {
+            // Clear citations if LLM said "no information"
+            setMessages((prev) => {
+              const lastIndex = prev.length - 1;
+              const lastMessage = prev[lastIndex];
+              
+              return [
+                ...prev.slice(0, lastIndex),
+                {
+                  ...lastMessage,
+                  citations: []
+                }
+              ];
             });
           }
         }
@@ -175,7 +203,7 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
                 {/* Special blue box for the "Thinking" process */}
                 {message.thinking && (
                   <div className="mb-3 p-3 bg-blue-50 rounded border border-blue-200">
-                    <p className="text-xs font-semibold text-blue-800 mb-1">🤔 AI Thinking Process</p>
+                    <p className="text-xs font-semibold text-blue-800 mb-1">AI Thinking Process</p>
                     <p className="text-sm text-blue-700 whitespace-pre-wrap">{message.thinking}</p>
                   </div>
                 )}
@@ -183,10 +211,10 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
                 {/* The final answer text */}
                 <p className="whitespace-pre-wrap">{message.content}</p>
 
-                {/* Citations section with links to PDFs */}
+                {/* Citations section with links to PDFs - at the bottom */}
                 {message.citations && message.citations.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-300">
-                    <p className="text-xs font-semibold mb-1">📚 Sources:</p>
+                    <p className="text-xs font-semibold mb-1">Sources:</p>
                     <ul className="text-xs space-y-1">
                       {message.citations.map((cite, idx) => {
                         // Logic to turn a citation string into a clickable file link.

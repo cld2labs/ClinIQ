@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, FileText, X, Loader2 } from 'lucide-react';
-import { uploadDocument } from '../services/api';
+import { uploadDocument, getUploadStatus } from '../services/api';
 import toast from 'react-hot-toast';
 
 /**
@@ -12,7 +12,8 @@ const DocumentUpload = ({ apiKey, onUploadSuccess, currentDocument, onClear }) =
   // Logic states (Local variables for this component).
   const [dragActive, setDragActive] = useState(false); // Is the user dragging a file over the box?
   const [files, setFiles] = useState([]);              // The actual file objects.
-  const [isLoading, setIsLoading] = useState(false);    // Is it currently uploading?
+  const [isLoading, setIsLoading] = useState(false);    // Is it currently uploading or processing?
+  const [processingStatus, setProcessingStatus] = useState(null); // Detailed message from background
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -72,29 +73,70 @@ const DocumentUpload = ({ apiKey, onUploadSuccess, currentDocument, onClear }) =
     e.preventDefault();
     if (files.length === 0) return;
 
-    if (!apiKey) {
-      toast.error('Please enter your OpenAI API key first');
+    // Double-check API key with trim to ensure it's not just whitespace
+    const trimmedKey = apiKey?.trim();
+    if (!trimmedKey || trimmedKey.length < 10) {
+      toast.error('Please enter a valid OpenAI API key first (starts with "sk-")');
+      return;
+    }
+
+    // Additional validation - check if it starts with sk-
+    if (!trimmedKey.startsWith('sk-')) {
+      toast.error('Invalid API key format. OpenAI keys start with "sk-"');
       return;
     }
 
     setIsLoading(true);
-    try {
-      // We call our API bridge (see api.js).
-      const result = await uploadDocument(files, apiKey);
-      toast.success(result.message || `Documents processed! Created ${result.chunks} chunks.`);
-      setFiles([]); // Reset the input.
+    setProcessingStatus('Uploading files...');
 
-      /**
-       * 'onUploadSuccess' is a function passed down from the PARENT (Chat.jsx).
-       * It's like calling a callback function in Python.
-       */
-      if (onUploadSuccess) {
-        onUploadSuccess(result);
+    try {
+      // Step 1: Upload and get job_id
+      const uploadResult = await uploadDocument(files, trimmedKey);
+      const jobId = uploadResult.job_id;
+
+      if (!jobId) {
+        // Fallback for old API (if we missed something)
+        toast.success(uploadResult.message || 'Documents processed!');
+        setFiles([]);
+        if (onUploadSuccess) onUploadSuccess(uploadResult);
+        setIsLoading(false);
+        return;
       }
+
+      // Step 2: Poll for completion
+      // JavaScript's 'setInterval' is like a while-loop but doesn't block.
+      const pollInterval = setInterval(async () => {
+        try {
+          const status = await getUploadStatus(jobId);
+
+          if (status.status === 'completed') {
+            clearInterval(pollInterval);
+            toast.success(status.message);
+            setFiles([]);
+            setProcessingStatus(null);
+            setIsLoading(false);
+            if (onUploadSuccess) onUploadSuccess(status);
+          } else if (status.status === 'failed') {
+            clearInterval(pollInterval);
+            toast.error(status.error || 'Processing failed');
+            setProcessingStatus(null);
+            setIsLoading(false);
+          } else {
+            // Still processing
+            setProcessingStatus(status.message || 'Processing documents...');
+          }
+        } catch (pollError) {
+          clearInterval(pollInterval);
+          console.error('Polling error:', pollError);
+          setIsLoading(false);
+          setProcessingStatus(null);
+        }
+      }, 2000); // Check every 2 seconds.
+
     } catch (error) {
       toast.error(error.message || 'Failed to upload documents');
-    } finally {
       setIsLoading(false);
+      setProcessingStatus(null);
     }
   };
 
@@ -208,7 +250,7 @@ const DocumentUpload = ({ apiKey, onUploadSuccess, currentDocument, onClear }) =
           {isLoading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Processing {files.length} Document{files.length > 1 ? 's' : ''}...
+              {processingStatus || `Processing ${files.length} Document${files.length > 1 ? 's' : ''}...`}
             </>
           ) : (
             `Ingest ${files.length > 0 ? files.length : ''} Document${files.length !== 1 ? 's' : ''}`

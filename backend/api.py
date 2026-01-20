@@ -16,6 +16,9 @@ from flask_cors import CORS
 import os
 import logging
 import atexit
+import threading
+import uuid
+import time
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from utils.document_processor import extract_text_from_pdf, extract_text_from_docx, chunk_text, create_embeddings
@@ -40,6 +43,11 @@ load_dotenv()
 # Create the Flask application instance
 # This is the main WSGI application that handles HTTP requests
 app = Flask(__name__)
+
+# Configure Flask to use UTF-8 encoding for JSON responses
+# This ensures emojis and Unicode characters are properly handled
+app.config['JSON_AS_ASCII'] = False
+app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
 
 # Enable CORS (Cross-Origin Resource Sharing)
 # This allows the React frontend (running on port 3000) to make requests
@@ -91,6 +99,13 @@ def cleanup_on_shutdown():
 
 # Register cleanup function to run when app terminates
 atexit.register(cleanup_on_shutdown)
+
+# ============================================================================
+# JOB TRACKING STORE
+# ============================================================================
+# Stores the status of background document processing jobs
+# job_id -> {"status": "processing"|"completed"|"failed", "message": "...", "chunks": 0, "files": []}
+processing_jobs = {}
 
 @app.teardown_appcontext
 def teardown_request(exception=None):
@@ -177,185 +192,141 @@ def serve_file(filename):
         logger.error(f"Error serving file {filename}: {str(e)}")
         return jsonify({"error": "File not found"}), 404
 
-@app.route('/api/upload', methods=['POST'])
-def upload_document():
+def process_documents_background(job_id, file_paths, api_key):
     """
-    Document Upload Endpoint - THE KNOWLEDGE INTAKE SYSTEM
-    
-    This is one of the most important endpoints. It handles the entire document
-    processing pipeline:
-    
-    1. RECEIVES FILES: Accepts one or more document files from the frontend
-    2. VALIDATES: Checks file type, size, and API key
-    3. SAVES FILES: Stores original files for citation viewing
-    4. EXTRACTS TEXT: Reads text from PDF, DOCX, or TXT files
-    5. CHUNKS TEXT: Breaks documents into smaller, searchable pieces
-    6. CREATES EMBEDDINGS: Converts text chunks into AI-readable vectors
-    7. STORES IN DATABASE: Saves everything in ChromaDB for fast retrieval
-    8. INDEXES: Creates search indexes for hybrid search
-    
-    The processed documents become searchable and can be queried immediately.
-    
-    Request Format:
-        - Content-Type: multipart/form-data
-        - Fields:
-            - file: One or more files (PDF, DOCX, or TXT)
-            - api_key: OpenAI API key for creating embeddings
-    
-    Returns:
-        JSON response with:
-            - success: Boolean indicating if upload was successful
-            - message: Human-readable status message
-            - chunks: Total number of text chunks created
-            - files: List of successfully processed filenames
-            
-    Error Responses:
-        - 400: Missing file, invalid file type, or missing API key
-        - 500: Server error during processing
-        
-    Example Success Response:
-        {
-            "success": true,
-            "message": "Successfully processed 2 documents",
-            "chunks": 45,
-            "files": ["document1.pdf", "document2.docx"]
-        }
+    Background worker that handles the heavy document processing:
+    text extraction, chunking, embedding, and indexing.
     """
     try:
-        # Check if files were provided in the request
-        if 'file' not in request.files:
-            return jsonify({"error": "No file provided"}), 400
+        processing_jobs[job_id] = {
+            "status": "processing",
+            "message": "Extracting text and creating embeddings...",
+            "chunks": 0,
+            "files": []
+        }
         
-        # Get list of files (supports multiple file uploads)
-        # This allows users to upload multiple documents at once
-        files = request.files.getlist('file')
-        
-        # Get OpenAI API key from form data
-        # The API key is required to create embeddings using OpenAI's API
-        api_key = request.form.get('api_key', '')
-        
-        # Validate that at least one file was selected
-        if not files or all(f.filename == '' for f in files):
-            return jsonify({"error": "No files selected"}), 400
-        
-        # Validate API key is provided
-        if not api_key:
-            return jsonify({"error": "OpenAI API key is required"}), 400
-        
-        # Initialize tracking variables for processing multiple files
-        global_chunk_counter = 0  # Tracks total chunks across all files
-        total_chunks = 0  # Total chunks created
-        processed_files = []  # List of successfully processed filenames
-        
-        # Initialize ChromaDB collection (vector database)
-        # This is where we'll store all the document chunks and embeddings
+        global_chunk_counter = 0
+        processed_files = []
         collection = initialize_chromadb()
         
-        # Process each uploaded file
-        for file in files:
-            # Skip empty or invalid files
-            if file.filename == '' or not allowed_file(file.filename):
-                logger.warning(f"Skipping disallowed or empty file: {file.filename}")
-                continue
-                
-            # ================================================================
-            # STEP 1: Save the original file
-            # ================================================================
-            # Use secure_filename to prevent directory traversal attacks
-            # This sanitizes the filename to remove dangerous characters
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
+        for file_path in file_paths:
+            filename = os.path.basename(file_path)
+            file_chunks = []
+            file_metadata = []
             
-            # ================================================================
-            # STEP 2: Extract text from the file based on its type
-            # ================================================================
-            file_chunks = []  # Text chunks from this file
-            file_metadata = []  # Metadata for each chunk (source, page, etc.)
-            
-            # Open the saved file and extract text
             with open(file_path, 'rb') as f:
                 if filename.endswith('.pdf'):
-                    # PDF files: Extract text page by page
-                    # Returns list of (text, page_number) tuples
                     pages_data = extract_text_from_pdf(f)
                 elif filename.endswith('.docx'):
-                    # Word documents: Extract all text
-                    # We treat the whole document as page 1
                     text = extract_text_from_docx(f)
                     pages_data = [(text, 1)]
                 else:
-                    # Plain text files: Read directly
-                    # We treat the whole file as page 1
-                    f.seek(0)  # Reset file pointer to beginning
+                    f.seek(0)
                     text = str(f.read(), "utf-8")
                     pages_data = [(text, 1)]
             
-            # ================================================================
-            # STEP 3: Chunk the text and create metadata
-            # ================================================================
-            # Process each page separately to maintain page-level citations
             for text, page_num in pages_data:
-                # Skip empty pages
                 if not text or not text.strip():
                     continue
                 
-                # Break the page text into smaller chunks
-                # Chunking makes documents searchable in smaller pieces
-                # Each chunk is ~800 tokens with 150 token overlap
                 page_chunks = chunk_text(text)
-                
-                # Create metadata for each chunk
                 for chunk in page_chunks:
                     file_chunks.append(chunk)
                     file_metadata.append({
-                        "source": filename,  # Original filename
-                        "page": page_num,    # Page number for citation
-                        "chunk_id": global_chunk_counter  # Unique chunk identifier
+                        "source": filename,
+                        "page": page_num,
+                        "chunk_id": global_chunk_counter
                     })
                     global_chunk_counter += 1
             
-            # ================================================================
-            # STEP 4: Create embeddings and store in database
-            # ================================================================
             if file_chunks:
-                # Convert text chunks into embeddings (vector representations)
-                # Embeddings allow semantic search - finding documents by meaning
-                # This calls OpenAI's API to create embeddings
                 embeddings = create_embeddings(file_chunks, api_key)
-                
-                # Store chunks, embeddings, and metadata in ChromaDB
-                # ChromaDB is a vector database optimized for similarity search
                 add_documents(collection, file_chunks, embeddings, file_metadata)
-                
-                # Track successful processing
-                total_chunks += len(file_chunks)
                 processed_files.append(filename)
         
-        # Validate that at least one file was successfully processed
         if not processed_files:
-            return jsonify({"error": "No text could be extracted from the uploaded documents"}), 400
-        
-        # ================================================================
-        # STEP 5: Initialize BM25 index for hybrid search
-        # ================================================================
-        # BM25 is a keyword-based search algorithm
-        # Combined with semantic search (embeddings), it creates hybrid search
-        # This provides better results by combining meaning + keywords
+            processing_jobs[job_id].update({
+                "status": "failed",
+                "error": "No text could be extracted from the uploaded documents"
+            })
+            return
+
         initialize_bm25_index(collection)
         
-        # Return success response with processing summary
-        return jsonify({
-            "success": True,
+        processing_jobs[job_id].update({
+            "status": "completed",
             "message": f"Successfully processed {len(processed_files)} documents",
-            "chunks": global_chunk_counter,  # Total chunks across all files
-            "files": processed_files  # List of processed filenames
-        }), 200
+            "chunks": global_chunk_counter,
+            "files": processed_files
+        })
         
     except Exception as e:
-        # Log the full error for debugging
-        logger.error(f"Upload error: {str(e)}", exc_info=True)
+        logger.error(f"Background upload error for job {job_id}: {str(e)}", exc_info=True)
+        processing_jobs[job_id].update({
+            "status": "failed",
+            "error": str(e)
+        })
+
+@app.route('/api/upload', methods=['POST'])
+def upload_document():
+    """
+    STAY-RESPONSIVE UPLOAD ENDPOINT
+    Saves the files then kicks off background processing.
+    """
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+        
+        files = request.files.getlist('file')
+        api_key = request.form.get('api_key', '')
+        
+        if not files or all(f.filename == '' for f in files):
+            return jsonify({"error": "No files selected"}), 400
+        
+        api_key = api_key.strip() if api_key else ''
+        if not api_key or len(api_key) < 10 or not api_key.startswith('sk-'):
+            return jsonify({"error": "Valid OpenAI API key is required"}), 400
+        
+        job_id = str(uuid.uuid4())
+        saved_file_paths = []
+        
+        for file in files:
+            if file.filename == '' or not allowed_file(file.filename):
+                continue
+                
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+            saved_file_paths.append(file_path)
+        
+        if not saved_file_paths:
+             return jsonify({"error": "No valid files were uploaded"}), 400
+
+        # Start background processing
+        thread = threading.Thread(
+            target=process_documents_background, 
+            args=(job_id, saved_file_paths, api_key)
+        )
+        thread.daemon = True # Ensure thread closes with main app
+        thread.start()
+        
+        return jsonify({
+            "success": True,
+            "job_id": job_id,
+            "message": "Files uploaded successfully. Processing started in background."
+        }), 202 # 202 Accepted
+        
+    except Exception as e:
+        logger.error(f"Upload start error: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/upload/status/<job_id>', methods=['GET'])
+def get_upload_status(job_id):
+    """Checks the status of a background processing job."""
+    job = processing_jobs.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+    return jsonify(job), 200
 
 @app.route('/api/query', methods=['POST'])
 def query_documents():
@@ -438,8 +409,11 @@ def query_documents():
         if not query:
             return jsonify({"error": "Query is required"}), 400
         
-        if not api_key:
-            return jsonify({"error": "OpenAI API key is required"}), 400
+        # Validate API key is provided and has minimum length
+        api_key = api_key.strip() if api_key else ''
+        if not api_key or len(api_key) < 10 or not api_key.startswith('sk-'):
+            logger.warning(f"Invalid API key in query: length={len(api_key)}, starts_with_sk={api_key.startswith('sk-') if api_key else False}")
+            return jsonify({"error": "Valid OpenAI API key is required (must start with 'sk-')"}), 401
         
         # ================================================================
         # STREAMING MODE: Send answer in real-time chunks
@@ -471,7 +445,8 @@ def query_documents():
 
             # Return streaming response
             # mimetype='text/event-stream' tells the browser this is an SSE stream
-            return Response(sse_stream(), mimetype='text/event-stream')
+            # charset=utf-8 ensures proper encoding of Unicode characters (emojis)
+            return Response(sse_stream(), mimetype='text/event-stream; charset=utf-8')
 
         # ================================================================
         # NON-STREAMING MODE: Generate complete answer and return

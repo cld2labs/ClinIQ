@@ -8,7 +8,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_ENDPOINT || 'http://backend:5000',
+        target: process.env.VITE_BACKEND_ENDPOINT || 'http://localhost:5000',
         changeOrigin: true
       }
     }

@@ -237,14 +237,20 @@ def create_embeddings(chunks, api_key):
     """
     # Create OpenAI client instance
     # API key is passed directly to the client and not stored in environment
-    client = OpenAI(api_key=api_key)
-    
-    # Call OpenAI's embedding API
-    # This converts all text chunks into vector representations in one call
-    response = client.embeddings.create(
-        input=chunks,  # List of text chunks to embed
-        model="text-embedding-3-small"  # OpenAI's efficient embedding model
-    )
+    try:
+        client = OpenAI(api_key=api_key)
+        
+        # Call OpenAI's embedding API
+        # This converts all text chunks into vector representations in one call
+        response = client.embeddings.create(
+            input=chunks,  # List of text chunks to embed
+            model="text-embedding-3-small"  # OpenAI's efficient embedding model
+        )
+    except Exception as e:
+        error_msg = str(e)
+        if '401' in error_msg or 'Unauthorized' in error_msg or 'authentication' in error_msg.lower():
+            raise ValueError(f"Invalid OpenAI API key. Please check your API key and try again.")
+        raise Exception(f"OpenAI API error: {error_msg}")
     
     # Extract embeddings from the response
     # Each data object contains one embedding vector

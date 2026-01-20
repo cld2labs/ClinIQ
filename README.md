@@ -4,6 +4,9 @@
 
 ClinIQ is a modern web application that allows healthcare professionals to upload clinical documents and ask questions in plain English. Using advanced AI techniques including hybrid search, reranking, and OpenAI's GPT models, it provides accurate, evidence-based answers with source citations.
 
+
+![ClinIQ Demo](Docs/assets/demo.gif)
+
 ---
 
 ## ✨ Features
@@ -21,8 +24,67 @@ ClinIQ is a modern web application that allows healthcare professionals to uploa
 
 ## 🏗️ Architecture
 
-ClinIQ follows a microservices architecture:
+```mermaid
+graph TB
+    subgraph "Client"
+        User[👤 User]
+        Browser[🌐 Browser<br/>localhost:3000]
+    end
 
+    subgraph "Frontend Container"
+        React[⚛️ React + Vite<br/>Port 3000]
+    end
+
+    subgraph "Backend Container"
+        Flask[🐍 Flask API<br/>Port 5000]
+        RAG[🔄 RAG Pipeline]
+        
+        subgraph "Search"
+            Vector[🔍 Vector Search]
+            BM25[📊 BM25 Search]
+            Hybrid[🔀 Hybrid Fusion]
+        end
+    end
+
+    subgraph "Storage"
+        ChromaDB[(🗄️ ChromaDB<br/>Vector DB)]
+        Files[(📁 Uploads)]
+    end
+
+    subgraph "External"
+        OpenAI[🤖 OpenAI API<br/>GPT-3.5 + Embeddings]
+    end
+
+    User -->|Upload & Query| Browser
+    Browser -->|HTTP/REST| React
+    React -->|Proxy /api/*| Flask
+    Flask --> RAG
+    RAG --> Vector
+    RAG --> BM25
+    Vector --> Hybrid
+    BM25 --> Hybrid
+    Hybrid -->|Context| OpenAI
+    Vector --> ChromaDB
+    BM25 --> ChromaDB
+    Flask --> ChromaDB
+    Flask --> Files
+    Flask -->|API Key| OpenAI
+    OpenAI -->|Answers| Flask
+
+    classDef frontend fill:#61dafb,stroke:#333,stroke-width:2px
+    classDef backend fill:#3776ab,stroke:#333,stroke-width:2px,color:#fff
+    classDef data fill:#ffa500,stroke:#333,stroke-width:2px
+    classDef external fill:#10a37f,stroke:#333,stroke-width:2px,color:#fff
+    
+    class Browser,React frontend
+    class Flask,RAG,Vector,BM25,Hybrid backend
+    class ChromaDB,Files data
+    class OpenAI external
+```
+
+**🔗 [View Detailed Architecture →](./ARCHITECTURE.md)**
+
+### Key Components:
 - **Backend**: Flask REST API (Python) - Port 5000
 - **Frontend**: React + Vite (JavaScript) - Port 3000
 - **Vector Database**: ChromaDB (local persistent storage)

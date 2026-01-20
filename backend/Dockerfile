@@ -1,6 +1,12 @@
 # Use Python 3.11
 FROM python:3.11-slim
 
+# Set environment variables for UTF-8 encoding
+# This ensures Python handles Unicode characters (emojis) correctly
+ENV PYTHONIOENCODING=utf-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
 # Set working directory
 WORKDIR /app
 

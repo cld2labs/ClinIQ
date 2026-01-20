@@ -389,46 +389,7 @@ npm run dev
 
 ---
 
-## Quick Reference: Commands Summary
 
-### Docker Commands
-
-| When | Command | What It Does |
-|------|---------|--------------|
-| **First time** | `docker-compose -f configuration/docker-compose.yml up --build` | Builds images + Starts containers |
-| **Every other time** | `docker-compose -f configuration/docker-compose.yml up` | Just starts containers (fast!) |
-| **Stop services** | `docker-compose -f configuration/docker-compose.yml down` | Stops and removes containers |
-| **Stop (keep images)** | Press `Ctrl+C` in terminal | Stops containers but keeps them |
-| **View logs** | `docker-compose -f configuration/docker-compose.yml logs -f` | Shows logs from both services |
-| **Stop & cleanup** | `docker-compose -f configuration/docker-compose.yml down --rmi all` | Stops and removes everything |
-
-### Local Development Commands
-
-| When | Command | What It Does |
-|------|---------|--------------|
-| **First time - Backend** | `cd backend && pip install -r requirements.txt` | Installs Python packages |
-| **First time - Frontend** | `cd frontend && npm install` | Installs Node.js packages |
-| **Every time - Backend** | `cd backend && python api.py` | Starts Flask API server |
-| **Every time - Frontend** | `cd frontend && npm run dev` | Starts React dev server |
-| **Stop Backend** | Press `Ctrl+C` in backend terminal | Stops Flask server |
-| **Stop Frontend** | Press `Ctrl+C` in frontend terminal | Stops React dev server |
-
----
-
-## Understanding the Two Options
-
-### Docker vs Local Development
-
-| Aspect | Docker | Local Development |
-|--------|--------|-------------------|
-| **Dependencies** | Installed in containers | Installed on your system |
-| **Setup Time** | 2-5 min (first time) | 3-5 min total |
-| **System Impact** | None (isolated) | Installs packages on your machine |
-| **Portability** | Works anywhere Docker runs | Requires Python + Node.js |
-| **Cleanup** | `docker-compose down` | Manual uninstall |
-| **Best For** | Production, sharing, consistency | Development, debugging |
-
----
 
 ## How to Stop the Application
 
@@ -489,37 +450,3 @@ docker-compose -f configuration/docker-compose.yml down --rmi all
 - Docker Desktop is not running
 - **Fix**: Start Docker Desktop application
 
-### Local Development Issues
-
-**"Module not found" (Python)**:
-- Dependencies not installed
-- **Fix**: Run `pip install -r backend/requirements.txt`
-
-**"Cannot find module" (Node.js)**:
-- Dependencies not installed
-- **Fix**: Run `npm install` in `frontend/` directory
-
-**"Port already in use"**:
-- Another process is using the port
-- **Fix**: Stop the other process or change port in code
-
----
-
-## Next Steps
-
-After getting the app running:
-
-1. **Upload a document** - Try a clinical PDF or Word document
-2. **Ask questions** - Test the Q&A functionality
-3. **Explore settings** - Try enabling/disabling hybrid search and reranker
-4. **Read the docs** - Check `Docs/` folder for more detailed documentation
-
----
-
-## Need Help?
-
-- Check the main [README.md](../README.md) for detailed documentation
-- Review [DOCKER_SETUP.md](DOCKER_SETUP.md) for Docker-specific help
-- Open an issue on GitHub if you encounter problems
-
-**Ready to get started? Choose your preferred method above and follow the steps!** 🚀

@@ -49,6 +49,20 @@ export const uploadDocument = async (files, apiKey) => {
 };
 
 /**
+ * Checks the status of a background document processing job.
+ */
+export const getUploadStatus = async (jobId) => {
+  const response = await fetch(`${API_BASE_URL}/upload/status/${jobId}`);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to get upload status');
+  }
+
+  return response.json();
+};
+
+/**
  * Sends your question to the assistant and handles the incoming answer.
  * We use 'streaming' here to show the answer as it's being typed.
  */

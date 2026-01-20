@@ -30,7 +30,7 @@ const ConfigSidebar = ({ apiKey, onApiKeyChange, config, onConfigChange, models 
         <div>
           <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
             <Key className="w-4 h-4 mr-2" />
-            OpenAI API Key
+            OpenAI API Key {!apiKey && <span className="ml-2 text-xs text-red-600">(Required)</span>}
           </label>
           <div className="relative">
             <input
@@ -39,7 +39,9 @@ const ConfigSidebar = ({ apiKey, onApiKeyChange, config, onConfigChange, models 
               // This 'onChange' is like a keyboard event listener.
               onChange={(e) => onApiKeyChange(e.target.value)}
               placeholder="sk-proj-..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10 ${
+                !apiKey ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
             />
             {/* Toggle 'Show/Hide' Button */}
             <button
@@ -51,8 +53,13 @@ const ConfigSidebar = ({ apiKey, onApiKeyChange, config, onConfigChange, models 
             </button>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Your API key is kept in memory only and is never saved or shared
+            Your API key is kept in memory only and is never saved or shared. It will be cleared when you close the browser or clear the knowledge base.
           </p>
+          {!apiKey && (
+            <p className="text-xs text-red-600 mt-1 font-medium">
+              ⚠️ Please enter your API key to use the application
+            </p>
+          )}
         </div>
 
         {/* Model Info Section (Display only) */}

@@ -404,7 +404,9 @@ CONTEXT:
     # - Generate an answer based ONLY on the provided context
     response = client.chat.completions.create(
         model=DEFAULT_CHAT_MODEL,  # GPT-3.5-Turbo
-        messages=messages
+        messages=messages,
+        max_tokens=1000,  # Allow longer responses
+        temperature=0.3   # Lower temperature for more consistent, focused responses
     )
 
     # Extract the generated answer
@@ -473,28 +475,30 @@ def generate_answer_stream(query, api_key=None, history=[], use_hybrid_search=Tr
     # System prompt (same logic as generate_answer)
     if show_thinking:
         system_content = f"""You are ClinIQ, an AI assistant for healthcare professionals.
-RULES:
-- Answer ONLY using the provided context.
-- SYNTHESIZE information from across ALL provided document fragments.
-- If multiple sources discuss the same topic, combine their details for a comprehensive answer.
-- Always cite sources as [Source: filename | Page: X].
-- If the answer isn't in the context, say "I don't have that information in the uploaded documents".
-- Use clear, professional medical terminology.
-- Be concise but complete.
-- Show your reasoning process step by step before providing the final answer.
+
+STRICT RULES:
+- Answer ONLY using the provided context below
+- If the question is NOT directly related to the context, you MUST say: "I don't have that information in the uploaded documents"
+- Do NOT answer general knowledge questions - ONLY use the provided context
+- SYNTHESIZE information from across ALL provided document fragments
+- Always cite sources as [Source: filename | Page: X]
+- Use clear, professional medical terminology
+- Be concise but complete
+- Show your reasoning process step by step before providing the final answer
 
 CONTEXT:
 {context_text}"""
     else:
         system_content = f"""You are ClinIQ, an AI assistant for healthcare professionals.
-RULES:
-- Answer ONLY using the provided context.
-- SYNTHESIZE information from across ALL provided document fragments.
-- If multiple sources discuss the same topic, combine their details for a comprehensive answer.
-- Always cite sources as [Source: filename | Page: X].
-- If the answer isn't in the context, say "I don't have that information in the uploaded documents".
-- Use clear, professional medical terminology.
-- Be concise but complete.
+
+STRICT RULES:
+- Answer ONLY using the provided context below
+- If the question is NOT directly related to the context, you MUST say: "I don't have that information in the uploaded documents"
+- Do NOT answer general knowledge questions - ONLY use the provided context
+- SYNTHESIZE information from across ALL provided document fragments
+- Always cite sources as [Source: filename | Page: X]
+- Use clear, professional medical terminology
+- Be concise but complete
 
 CONTEXT:
 {context_text}"""
@@ -505,34 +509,125 @@ CONTEXT:
     for msg in history:
         messages.append({"role": msg['role'], "content": msg['content']})
         
-    # Format query
+    # Format query based on whether thinking process is requested
     final_query = query
     if show_thinking:
-        final_query = f"Question: {query}\n\nFirst, think step-by-step. Then provide your final answer by starting with \"Final Answer:\".\n\nThinking process:"
+        # Strict instructions to avoid repeating the answer in the thinking section
+        final_query = (
+            f"Question: {query}\n\n"
+            "Instructions:\n"
+            "1. First, provide your step-by-step reasoning as a numbered list\n"
+            "2. After your reasoning, write EXACTLY this text on a new line: 'Final Answer:'\n"
+            "3. Then provide your concise summary answer\n\n"
+            "Example format:\n"
+            "1. Point one\n"
+            "2. Point two\n\n"
+            "Final Answer: Your summary here\n\n"
+            "Now answer the question:"
+        )
     else:
         final_query = f"Question: {query}\n\nAnswer with inline citations:"
 
     messages.append({"role": "user", "content": final_query})
 
-    # Send citations as metadata first
+    # Send citations as metadata first (consistent with user request)
     import json
     yield json.dumps({"type": "metadata", "citations": citations})
 
     # ========================================================================
-    # Stream the answer
+    # Stream the answer with robust buffering
     # ========================================================================
     # Call GPT with stream=True to get chunks as they're generated
     response = client.chat.completions.create(
         model=DEFAULT_CHAT_MODEL,
         messages=messages,
-        stream=True  # Enable streaming
+        stream=True,
+        max_tokens=1000,  # Allow longer responses
+        temperature=0.3    # Lower temperature for more consistent, focused responses
     )
 
-    # Yield each chunk as it arrives
-    for chunk in response:
-        if chunk.choices and chunk.choices[0].delta.content:
-            # Format chunk as JSON for frontend processing
-            yield json.dumps({"type": "content", "content": chunk.choices[0].delta.content})
+    full_response = ""
+    if show_thinking:
+        # ROBUST BUFFERING: Detects the marker even if split across chunks
+        full_buffer = ""
+        found_final_answer = False
+        sent_thinking_len = 0
+        # Try multiple possible separators
+        possible_markers = ["Final Answer:", "\n\n**\n", "\n**\n\n", "\n\n**"]
+        found_marker = None
+        
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content:
+                new_text = chunk.choices[0].delta.content
+                full_buffer += new_text
+                full_response += new_text
+                
+                if not found_final_answer:
+                    # Check for any of the possible markers
+                    for marker in possible_markers:
+                        if marker in full_buffer:
+                            found_marker = marker
+                            break
+                    
+                    if found_marker:
+                        # Marker FOUND!
+                        found_final_answer = True
+                        parts = full_buffer.split(found_marker, 1)
+                        
+                        # Send the remaining thinking text before the marker
+                        thinking_to_send = parts[0][sent_thinking_len:].strip()
+                        if thinking_to_send:
+                            yield json.dumps({"type": "thinking", "content": thinking_to_send})
+                        
+                        # Send everything after the marker as final answer content
+                        if parts[1].strip():
+                            yield json.dumps({"type": "content", "content": parts[1]})
+                    else:
+                        # Marker NOT YET found.
+                        # Send text that is "safe" (far enough from the end to not be a partial marker)
+                        # Use longest possible marker length for safety
+                        max_marker_len = max(len(m) for m in possible_markers)
+                        safe_len = max(0, len(full_buffer) - max_marker_len - 5)
+                        if safe_len > sent_thinking_len:
+                            to_send = full_buffer[sent_thinking_len:safe_len]
+                            yield json.dumps({"type": "thinking", "content": to_send})
+                            sent_thinking_len = safe_len
+                else:
+                    # After marker, everything is content
+                    yield json.dumps({"type": "content", "content": new_text})
+        
+        # FLUSH REMAINING BUFFER: Send any unsent content at the end of the stream
+        if not found_final_answer and sent_thinking_len < len(full_buffer):
+            # No "Final Answer:" marker found, send remaining buffer as thinking
+            remaining = full_buffer[sent_thinking_len:].strip()
+            if remaining:
+                yield json.dumps({"type": "thinking", "content": remaining})
+    else:
+        # Simple mode: send everything as content
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content:
+                new_text = chunk.choices[0].delta.content
+                full_response += new_text
+                yield json.dumps({"type": "content", "content": new_text})
+
+    # ========================================================================
+    # CITATION CLEARING: If we find "I don't have that information", clear citations
+    # ========================================================================
+    no_info_phrases = [
+        "i don't have that information",
+        "don't have that information",
+        "don't have information",
+        "not mentioned in the provided context",
+        "not mentioned in the context",
+        "no information in the uploaded documents",
+        "not found in the documents",
+        "not available in the uploaded documents",
+        "not directly related to the context",
+        "cannot find",
+        "no information about"
+    ]
+    if any(phrase in full_response.lower() for phrase in no_info_phrases):
+        yield json.dumps({"type": "clear_citations"})
 
 def parse_thinking_and_answer(response_text):
     """
