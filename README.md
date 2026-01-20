@@ -93,8 +93,6 @@ graph TB
 ```
 
 
-**🔗 [View Detailed Architecture →](./ARCHITECTURE.md)**
-
 ### Key Components:
 - **Backend**: Flask REST API (Python) - Port 5000
 - **Frontend**: React + Vite (JavaScript) - Port 3000
