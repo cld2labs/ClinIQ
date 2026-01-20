@@ -381,7 +381,7 @@ CliniQ/
 │                                   #   - Network configuration
 │
 ├── Docs/                           # Project documentation
-│   ├── ARCHITECTURE.md             # 🔗 Link to root ARCHITECTURE.md
+│            
 │   ├── DOCKER_SETUP.md             # Docker deployment guide
 │   ├── PROJECT_DOCUMENTATION.md    # Comprehensive project docs
 │   ├── QUICKSTART.md               # Quick start guide
