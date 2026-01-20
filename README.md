@@ -179,7 +179,7 @@ The frontend will start on `http://localhost:3000`
 
 ```bash
 git clone <your-repo-url>
-cd clinical-rag
+cd CliniQ
 ```
 
 #### Step 2: Build and Run with Docker Compose
