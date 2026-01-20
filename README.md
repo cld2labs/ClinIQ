@@ -1,3 +1,18 @@
+
+<p align="center">
+  <img src="https://drive.google.com/file/d/1u3xWhvXy7yuNVGegAmkj0V7c3RYwKdUr/view?usp=drive_link" width="200" alt="Company Logo">
+</p>
+
+<h1 align="center">ClinIQ: Clinical Q&A Driven by Your Documents</h1>
+
+<p align="center">
+  <b>Advanced RAG system for healthcare professionals</b>
+</p>
+
+
+
+
+
 # 🏥 Clinical Q&A Driven by Your Documents
 
 **Transform clinical documents into an intelligent question-answering system using AI-powered RAG (Retrieval-Augmented Generation)**
