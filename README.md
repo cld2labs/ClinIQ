@@ -16,11 +16,6 @@ ClinIQ is a modern web application that allows healthcare professionals to uploa
 
 ---
 
-<video src="" width="100"/>
-
-
----
-
 ## ✨ Features
 
 - 📄 **Multi-Format Document Support**: Upload PDF, DOCX, or TXT files
