@@ -14,8 +14,11 @@
 
 ClinIQ is a modern web application that allows healthcare professionals to upload clinical documents and ask questions in plain English. Using advanced AI techniques including hybrid search, reranking, and OpenAI's GPT models, it provides accurate, evidence-based answers with source citations.
 
+---
 
-![ClinIQ Demo](Docs/assets/demo.gif)
+<div align="center">
+  <video src="Docs/assets/demo.gif.mp4" width="100%" controls autoplay muted loop></video>
+</div>
 
 ---
 
