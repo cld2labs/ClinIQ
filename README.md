@@ -16,9 +16,8 @@ ClinIQ is a modern web application that allows healthcare professionals to uploa
 
 ---
 
-<div align="center">
-  <video src="Docs/assets/demo.gif.mp4" width="100%" controls autoplay muted loop></video>
-</div>
+<video src="https://user-images.githubusercontent.com..." width="600"/>
+
 
 ---
 
