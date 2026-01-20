@@ -269,68 +269,130 @@ docker-compose up --build --force-recreate
 ## 📁 Project Structure
 
 ```
-clinical-rag/
-├── README.md                 # Main documentation
+CliniQ/
+├── README.md                         # Main documentation (this file)
+├── ARCHITECTURE.md                   # Detailed architecture diagrams
 ├── LICENSE  
-├── .gitignore               # Git ignore rules
+├── .gitignore                       # Git ignore rules (excludes .chromadb/, uploads/)
 │
-├── backend/                  # Backend Python application
-│   ├── api.py               # Flask REST API
-│   ├── app.py               # Legacy Streamlit app (optional)
-│   ├── requirements.txt     # Python dependencies
-│   ├── Dockerfile           # Backend Docker configuration
-│   ├── test_openai_api.py   # API testing utility
+├── backend/                          # Backend Python Flask Application
+│   ├── api.py                       # 🔥 Main Flask REST API server (614 lines)
+│   │                                #    - 7 API endpoints
+│   │                                #    - Background document processing
+│   │                                #    - SSE streaming support
+│   │                                #    - Security teardown handlers
 │   │
-│   └── utils/              # Backend utilities
+│   ├── requirements.txt             # Python dependencies
+│   │                                #    Flask, OpenAI, ChromaDB, PyPDF2, etc.
+│   ├── Dockerfile                   # Backend Docker configuration
+│   │                                #    - Python 3.11 slim base
+│   │                                #    - UTF-8 environment setup
+│   │                                #    - Volume mounts for persistence
+│   │
+│   └── utils/                       # Core backend utilities
 │       ├── __init__.py
-│       ├── constants.py     # Model constants
-│       ├── document_processor.py # Document extraction & chunking
-│       ├── rag_pipeline.py  # RAG query processing
-│       └── vector_store.py  # ChromaDB & search operations
+│       │
+│       ├── constants.py             # Model configuration (26 lines)
+│       │                            #    - DEFAULT_CHAT_MODEL = "gpt-3.5-turbo"
+│       │                            #    - DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
+│       │
+│       ├── document_processor.py    # Document processing (258 lines)
+│       │                            #    - PDF extraction (PyPDF2)
+│       │                            #    - DOCX extraction (python-docx)
+│       │                            #    - Semantic chunking (tiktoken)
+│       │                            #    - Embedding creation (OpenAI API)
+│       │
+│       ├── rag_pipeline.py          # 🔥 RAG pipeline implementation (686 lines)
+│       │                            #    - Query rewriting (conversation context)
+│       │                            #    - Context retrieval & citations
+│       │                            #    - Answer generation (streaming + non-streaming)
+│       │                            #    - Thinking/answer parsing
+│       │                            #    - Smart citation clearing
+│       │                            #    - Robust buffering logic
+│       │
+│       └── vector_store.py          # 🔥 Search & storage (743 lines)
+│                                    #    - ChromaDB operations (init, add, clear)
+│                                    #    - Dense search (semantic similarity)
+│                                    #    - Sparse search (BM25 keyword)
+│                                    #    - Hybrid search (RRF fusion)
+│                                    #    - Reranking (cosine similarity)
 │
-├── frontend/                # React frontend
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   ├── Dockerfile           # Frontend Docker configuration
+├── frontend/                        # React + Vite Frontend Application
+│   ├── package.json                 # Dependencies: React, TailwindCSS, Lucide icons
+│   ├── vite.config.js              # Vite configuration (proxy to backend)
+│   ├── tailwind.config.js          # TailwindCSS configuration
+│   ├── Dockerfile                  # Frontend Docker configuration (Node 20 Alpine)
 │   │
-│   ├── public/              # Static assets
+│   ├── public/                     # Static assets
 │   │   └── cloud2labs-logo.png
 │   │
 │   └── src/
-│       ├── main.jsx         # Entry point
-│       ├── App.jsx         # Main app component
-│       ├── index.css        # Global styles
+│       ├── main.jsx                # React entry point
+│       ├── App.jsx                 # Main app component (routing)
+│       ├── index.css               # Global TailwindCSS styles
 │       │
-│       ├── components/      # React components
-│       │   ├── DocumentUpload.jsx
-│       │   ├── ChatInterface.jsx
-│       │   ├── ConfigSidebar.jsx
+│       ├── components/             # React components
+│       │   ├── DocumentUpload.jsx  # File upload with drag-and-drop
+│       │   │                       #   - Multi-file support
+│       │   │                       #   - File validation
+│       │   │                       #   - Upload progress tracking
+│       │   │
+│       │   ├── ChatInterface.jsx   # 🔥 Chat UI (311 lines)
+│       │   │                       #   - Message display (user + assistant)
+│       │   │                       #   - Real-time streaming accumulation
+│       │   │                       #   - Thinking process display
+│       │   │                       #   - Citation rendering with links
+│       │   │                       #   - Error handling
+│       │   │
+│       │   ├── ConfigSidebar.jsx   # Configuration panel
+│       │   │                       #   - API key input (memory-only)
+│       │   │                       #   - Hybrid search toggle
+│       │   │                       #   - Reranker toggle
+│       │   │                       #   - Thinking mode toggle
+│       │   │                       #   - Model info display
+│       │   │
 │       │   └── layout/
-│       │       ├── Header.jsx
-│       │       ├── Footer.jsx
-│       │       └── Layout.jsx
+│       │       ├── Header.jsx      # App header with logo
+│       │       ├── Footer.jsx      # Footer with tech info
+│       │       └── Layout.jsx      # Main layout wrapper
 │       │
-│       ├── pages/          # Page components
-│       │   ├── Home.jsx
-│       │   └── Chat.jsx
+│       ├── pages/                  # Page components
+│       │   ├── Home.jsx            # Landing page
+│       │   └── Chat.jsx            # 🔥 Main chat page (164 lines)
+│       │                           #   - State management (API key, documents, config)
+│       │                           #   - Document status polling
+│       │                           #   - Upload success handling
+│       │                           #   - RAG technology badges
 │       │
-│       └── services/       # API service layer
-│           └── api.js
+│       └── services/
+│           └── api.js              # API service layer
+│                                   #   - uploadDocument()
+│                                   #   - queryDocuments() with SSE streaming
+│                                   #   - getStatus()
+│                                   #   - clearDocuments()
 │
-├── configuration/          # Configuration files
-│   └── docker-compose.yml # Docker Compose configuration
+├── configuration/                  # Docker & deployment configuration
+│   └── docker-compose.yml          # Docker Compose orchestration
+│                                   #   - Frontend service (port 3000)
+│                                   #   - Backend service (port 5000)
+│                                   #   - Volume mounts (code, data)
+│                                   #   - Network configuration
 │
-├── Docs/                  # Documentation
-│   ├── DOCKER_SETUP.md
-│   ├── PROJECT_DOCUMENTATION.md
-│   ├── QUICKSTART.md
-│  
+├── Docs/                           # Project documentation
+│   ├── ARCHITECTURE.md             # 🔗 Link to root ARCHITECTURE.md
+│   ├── DOCKER_SETUP.md             # Docker deployment guide
+│   ├── PROJECT_DOCUMENTATION.md    # Comprehensive project docs
+│   ├── QUICKSTART.md               # Quick start guide
+│   └── assets/                     # Documentation assets
+│       └── demo.gif                # Application demo
 │
-├── .chromadb/             # ChromaDB data (gitignored)
-└── uploads/               # Uploaded files (gitignored)
+├── .chromadb/                      # 🔒 ChromaDB persistent storage (gitignored)
+│   └── [vector database files]    #     - Document embeddings
+│                                   #     - Metadata & indexes
+│
+└── uploads/                        # 🔒 Uploaded document files (gitignored)
+    └── [user-uploaded files]       #     - PDF, DOCX, TXT files
 ```
-
 ---
 
 
