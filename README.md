@@ -1,6 +1,8 @@
-# 🏥 ClinIQ - Clinical Knowledge Assistant
+# 🏥 Clinical Q&A Driven by Your Documents
 
 **Transform clinical documents into an intelligent question-answering system using AI-powered RAG (Retrieval-Augmented Generation)**
+
+## Overview
 
 ClinIQ is a modern web application that allows healthcare professionals to upload clinical documents and ask questions in plain English. Using advanced AI techniques including hybrid search, reranking, and OpenAI's GPT models, it provides accurate, evidence-based answers with source citations.
 
@@ -216,143 +218,6 @@ docker-compose down
 docker-compose up --build --force-recreate
 ```
 
----
-
-## 📖 Detailed Setup Instructions
-
-### Local Development Setup
-
-#### Backend Setup
-
-1. **Create a virtual environment (recommended)**:
-
-```bash
-python -m venv venv
-
-# On Windows
-venv\Scripts\activate
-
-# On macOS/Linux
-source venv/bin/activate
-```
-
-2. **Install dependencies**:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. **Run the backend**:
-
-```bash
-python api.py
-```
-
-The API will be available at `http://localhost:5000`
-
-#### Frontend Setup
-
-1. **Navigate to frontend directory**:
-
-```bash
-cd frontend
-```
-
-2. **Install dependencies**:
-
-```bash
-npm install
-```
-
-3. **Start development server**:
-
-```bash
-npm run dev
-```
-
-The UI will be available at `http://localhost:3000`
-
----
-
-### Docker Setup
-
-#### Prerequisites
-
-1. **Install Docker Desktop**:
-   - Download from: https://www.docker.com/products/docker-desktop/
-   - Install and ensure Docker Desktop is running
-
-2. **Verify Docker installation**:
-
-```bash
-docker --version
-docker compose version
-```
-
-#### Running with Docker Compose
-
-1. **Build and start all services**:
-
-```bash
-docker-compose up --build
-```
-
-2. **Run in detached mode (background)**:
-
-```bash
-docker-compose up -d --build
-```
-
-3. **View logs**:
-
-```bash
-# All services
-docker-compose logs -f
-
-# Backend only
-docker-compose logs -f backend
-
-# Frontend only
-docker-compose logs -f frontend
-```
-
-4. **Stop services**:
-
-```bash
-docker-compose down
-```
-
-#### Individual Container Commands
-
-**Backend only**:
-
-```bash
-# Build
-docker build -f backend/Dockerfile -t cliniq-backend ./backend
-
-# Run
-docker run -p 5000:5000 \
-  -v "${PWD}/backend/.chromadb:/app/.chromadb" \
-  -v "${PWD}/backend/uploads:/app/uploads" \
-  cliniq-backend
-```
-
-**Frontend only**:
-
-```bash
-# Build
-cd frontend
-docker build -t cliniq-frontend .
-
-# Run
-docker run -p 3000:3000 \
-  -v "${PWD}:/app" \
-  -v /app/node_modules \
-  cliniq-frontend
-```
-
----
-
 ## 🎯 How to Use
 
 ### 1. First Time Setup
@@ -370,27 +235,6 @@ docker run -p 3000:3000 \
    - "What follow-up care is recommended?"
 3. Review the answer with source citations
 
-### 3. Configuration Options
-
-- **Hybrid Search**: Combines semantic and keyword search (recommended: ON)
-- **Reranker**: Re-ranks results for better accuracy (recommended: ON)
-- **Show AI Thinking**: Displays step-by-step reasoning (optional)
-
----
-
-## 🔧 API Endpoints
-
-### Backend API (Flask)
-
-- `GET /api/health` - Health check
-- `POST /api/upload` - Upload document
-  - Body: `FormData` with `file` and `api_key`
-- `POST /api/query` - Query documents
-  - Body: `JSON` with `query`, `api_key`, `use_hybrid_search`, `use_reranker`, `show_thinking`
-- `POST /api/clear` - Clear knowledge base
-- `GET /api/status` - Get document status
-
----
 
 ## 🧠 How It Works
 
@@ -420,7 +264,7 @@ docker run -p 3000:3000 \
 ```
 clinical-rag/
 ├── README.md                 # Main documentation
-├── LICENSE                   # MIT License
+├── LICENSE  
 ├── .gitignore               # Git ignore rules
 │
 ├── backend/                  # Backend Python application
@@ -471,11 +315,10 @@ clinical-rag/
 │   └── docker-compose.yml # Docker Compose configuration
 │
 ├── Docs/                  # Documentation
-│   ├── CONTRIBUTING.md
 │   ├── DOCKER_SETUP.md
 │   ├── PROJECT_DOCUMENTATION.md
 │   ├── QUICKSTART.md
-│   └── README_REACT_SETUP.md
+│  
 │
 ├── .chromadb/             # ChromaDB data (gitignored)
 └── uploads/               # Uploaded files (gitignored)
@@ -483,133 +326,6 @@ clinical-rag/
 
 ---
 
-## 🛠️ Development
-
-### Backend Development
-
-- Edit `api.py` to modify API endpoints
-- Edit files in `utils/` to modify core logic
-- Backend uses Flask with CORS enabled
-
-### Frontend Development
-
-- Edit files in `frontend/src/`
-- Hot reload is enabled during development
-- Uses Vite for fast builds
-
-### Building for Production
-
-**Frontend**:
-
-```bash
-cd frontend
-npm run build
-```
-
-Built files will be in `frontend/dist/`
-
-**Backend**:
-
-The Flask app can be deployed using:
-- Gunicorn
-- uWSGI
-- Docker
-- Any WSGI-compatible server
-
----
-
-## 🐳 Docker Details
-
-### Docker Compose Services
-
-**Backend Service**:
-- Image: Python 3.11-slim
-- Port: 5000
-- Volumes: `.chromadb`, `uploads`
-- Environment: `FLASK_ENV=development`
-
-**Frontend Service**:
-- Image: Node.js 20-alpine
-- Port: 3000
-- Volumes: `frontend/` (for hot reload)
-- Environment: `VITE_BACKEND_ENDPOINT`
-
-### Docker Benefits
-
-✅ No local Node.js installation needed  
-✅ No local Python environment setup  
-✅ Consistent environment across machines  
-✅ Easy to share and deploy  
-✅ Isolated dependencies  
-✅ Easy cleanup (`docker-compose down`)
-
----
-
-## 🔍 Troubleshooting
-
-### Port Already in Use
-
-**Backend**:
-- Change port in `backend/api.py`: `app.run(port=5001)`
-
-**Frontend**:
-- Change port in `frontend/vite.config.js`:
-  ```js
-  server: {
-    port: 3001
-  }
-  ```
-
-**Docker**:
-- Edit `configuration/docker-compose.yml`:
-  ```yaml
-  ports:
-    - "3001:3000"  # Frontend
-    - "5001:5000"  # Backend
-  ```
-
-### CORS Errors
-
-- Ensure backend is running
-- Check that `flask-cors` is installed
-- Verify API URL in frontend proxy settings
-
-### API Key Issues
-
-- Ensure OpenAI API key is valid
-- Check that key has sufficient credits
-- Verify key format (starts with `sk-`)
-
-### Docker Issues
-
-**Container won't start**:
-```bash
-docker-compose down
-docker-compose up --build --force-recreate
-```
-
-**View container logs**:
-```bash
-docker-compose logs -f backend
-docker-compose logs -f frontend
-```
-
-**Clear Docker cache**:
-```bash
-docker-compose down -v
-docker system prune -a
-```
-
----
-
-## 🔒 Security & Privacy
-
-- **Documents stay local**: Files are processed on your computer/server
-- **API keys**: Stored in browser localStorage (never sent to external servers)
-- **No data sharing**: ClinIQ doesn't send your documents to external servers
-- **OpenAI usage**: Only question text and document chunks sent to OpenAI for processing
-
----
 
 ## 📝 Environment Variables
 
@@ -622,6 +338,5 @@ docker system prune -a
 
 - `VITE_BACKEND_ENDPOINT`: Backend API URL (default: `http://localhost:5000`)
 
----
 
 
