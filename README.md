@@ -92,6 +92,7 @@ graph TB
     class OpenAI external
 ```
 
+
 **🔗 [View Detailed Architecture →](./ARCHITECTURE.md)**
 
 ### Key Components:
