@@ -422,19 +422,22 @@ This project is licensed under our custom license - see [LICENSE](./LICENSE) fil
 
 ## Disclaimer
 
-**CliniQ** is provided as-is for analysis and informational purposes. While we strive for accuracy:
+THIS SOFTWARE  ** CliniQ ** IS PROVIDED FOR EDUCATIONAL AND DEMONSTRATION PURPOSES ONLY.
 
-- Always verify AI-generated summaries against original documents
-- Do not rely solely on AI summaries for investment decisions
-- Consult financial advisors for investment guidance
-- Test thoroughly before using in production environments
+This is NOT a medical device, clinical decision support system, or production-ready healthcare application. This software is NOT intended for use in clinical settings, medical diagnosis, or treatment decisions.
 
-For full disclaimer details, see [DISCLAIMER.md](./DISCLAIMER.md)
+DO NOT USE THIS SOFTWARE FOR:
+
+Medical diagnosis or treatment
+Clinical decision support
+Healthcare delivery
+Patient care
+Any medical or health-related purposes
+This is a technology demonstration and reference implementation only.
+
+For full disclaimer details, see [DISCLAIMER.md](./Disclaimer.md)
 
 ---
 
-
-
-[Back to Top](#)
 
 
