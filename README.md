@@ -410,4 +410,31 @@ CliniQ/
 - `VITE_BACKEND_ENDPOINT`: Backend API URL (default: `http://localhost:5000`)
 
 
+---
+
+
+## License
+
+This project is licensed under our custom license - see [LICENSE](./LICENSE) file for details.
+
+
+---
+
+## Disclaimer
+
+**CliniQ** is provided as-is for analysis and informational purposes. While we strive for accuracy:
+
+- Always verify AI-generated summaries against original documents
+- Do not rely solely on AI summaries for investment decisions
+- Consult financial advisors for investment guidance
+- Test thoroughly before using in production environments
+
+For full disclaimer details, see [DISCLAIMER.md](./DISCLAIMER.md)
+
+---
+
+
+
+[Back to Top](#)
+
 
