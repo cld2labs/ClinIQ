@@ -273,7 +273,7 @@ docker-compose up --build --force-recreate
 ```
 CliniQ/
 ├── README.md                         # Main documentation (this file)
-├── ARCHITECTURE.md                   # Detailed architecture diagrams
+├             
 ├── LICENSE  
 ├── .gitignore                       # Git ignore rules (excludes .chromadb/, uploads/)
 │
@@ -415,28 +415,24 @@ CliniQ/
 
 ## License
 
-This project is licensed under our custom license - see [LICENSE](./License.md) file for details.
+This project is licensed under  - see [LICENSE](./License.md) file for details.
 
 
 ---
 
 ## Disclaimer
 
-THIS SOFTWARE  ** CliniQ ** IS PROVIDED FOR EDUCATIONAL AND DEMONSTRATION PURPOSES ONLY.
+This software is provided by Cloud2 Labs "as is" and "as available" for educational and demonstration purposes only.
 
-This is NOT a medical device, clinical decision support system, or production-ready healthcare application. This software is NOT intended for use in clinical settings, medical diagnosis, or treatment decisions.
+This repository represents a reference implementation and does not constitute a production-ready system, medical device, clinical decision support system, or regulatory-compliant solution.
 
-DO NOT USE THIS SOFTWARE FOR:
+Cloud2 Labs makes no representations or warranties, express or implied, regarding the accuracy, reliability, completeness, or suitability of the software or its outputs for any purpose.
 
-Medical diagnosis or treatment
-Clinical decision support
-Healthcare delivery
-Patient care
-Any medical or health-related purposes
-This is a technology demonstration and reference implementation only.
+This software is not designed to provide medical, legal, financial, or other professional advice and must not be used as a substitute for professional judgment. All outputs require independent human review and validation.
 
-For full disclaimer details, see [DISCLAIMER.md](./Disclaimer.md)
+This software is not HIPAA-compliant by default, and Cloud2 Labs does not provide a Business Associate Agreement (BAA).
 
+By using this repository, you acknowledge and agree to this disclaimer.
 ---
 
 
