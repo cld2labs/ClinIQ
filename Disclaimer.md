@@ -1,11 +1,11 @@
-MEDICAL DISCLAIMER
+DISCLAIMER
 ------------------
 
 THIS SOFTWARE IS PROVIDED FOR EDUCATIONAL AND DEMONSTRATION PURPOSES ONLY.
 
-This is NOT a medical device, clinical decision support system, or 
-production-ready healthcare application. This software is NOT intended for 
-use in clinical settings, medical diagnosis, or treatment decisions.
+Cloud2 Labs makes no representations or warranties of any kind, express or 
+implied, regarding the accuracy, reliability, completeness, or suitability 
+of the software or its outputs for any purpose.
 
 DO NOT USE THIS SOFTWARE FOR:
 - Medical diagnosis or treatment
@@ -13,5 +13,3 @@ DO NOT USE THIS SOFTWARE FOR:
 - Healthcare delivery
 - Patient care
 - Any medical or health-related purposes
-
-This is a technology demonstration and reference implementation only.
