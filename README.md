@@ -178,7 +178,7 @@ The frontend will start on `http://localhost:3000`
 #### Step 1: Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone [Repo](https://github.com/cld2labs/CliniQ)
 cd CliniQ
 ```
 
