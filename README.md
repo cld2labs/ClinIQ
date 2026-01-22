@@ -415,7 +415,7 @@ CliniQ/
 
 ## License
 
-This project is licensed under our custom license - see [LICENSE](./LICENSE) file for details.
+This project is licensed under our custom license - see [LICENSE](./License.md) file for details.
 
 
 ---
