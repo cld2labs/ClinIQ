@@ -40,13 +40,11 @@ ClinIQ is a modern web application that allows healthcare professionals to uploa
 graph TB
     subgraph "Client"
         User[👤 User]
-        Browser[ Browser<br/>localhost:3000]
+        Browser[🌐 Browser<br/>localhost:3000]
     end
-
     subgraph "Frontend Container"
-        React[ React + Vite<br/>Port 3000]
+        React[⚛️ React + Vite<br/>Port 3000]
     end
-
     subgraph "Backend Container"
         Flask[🐍 Flask API<br/>Port 5000]
         RAG[🔄 RAG Pipeline]
@@ -57,16 +55,13 @@ graph TB
             Hybrid[🔀 Hybrid Fusion]
         end
     end
-
     subgraph "Storage"
         ChromaDB[(🗄️ ChromaDB<br/>Vector DB)]
         Files[(📁 Uploads)]
     end
-
     subgraph "External"
         OpenAI[🤖 OpenAI API<br/>GPT-3.5 + Embeddings]
     end
-
     User -->|Upload & Query| Browser
     Browser -->|HTTP/REST| React
     React -->|Proxy /api/*| Flask
@@ -82,10 +77,10 @@ graph TB
     Flask --> Files
     Flask -->|API Key| OpenAI
     OpenAI -->|Answers| Flask
-
-    classDef frontend fill:#61dafb,stroke:#333,stroke-width:2px
+    
+    classDef frontend fill:#61dafb,stroke:#333,stroke-width:2px,color:#000
     classDef backend fill:#3776ab,stroke:#333,stroke-width:2px,color:#fff
-    classDef data fill:#ffa500,stroke:#333,stroke-width:2px
+    classDef data fill:#ffa500,stroke:#333,stroke-width:2px,color:#000
     classDef external fill:#10a37f,stroke:#333,stroke-width:2px,color:#fff
     
     class Browser,React frontend
