@@ -40,11 +40,11 @@ ClinIQ is a modern web application that allows healthcare professionals to uploa
 graph TB
     subgraph "Client"
         User[👤 User]
-        Browser[🌐 Browser<br/>localhost:3000]
+        Browser[ Browser<br/>localhost:3000]
     end
 
     subgraph "Frontend Container"
-        React[⚛️ React + Vite<br/>Port 3000]
+        React[ React + Vite<br/>Port 3000]
     end
 
     subgraph "Backend Container"
