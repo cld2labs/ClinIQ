@@ -410,24 +410,23 @@ CliniQ/
 
 ## License
 
-This project is licensed under  - see [LICENSE](./License.md) file for details.
+This project is licensed under [LICENSE](./License.md) file for details.
 
 
 ---
 
 ## Disclaimer
 
-This software is provided by Cloud2 Labs "as is" and "as available" for educational and demonstration purposes only.
+**CliniQ** is provided as-is for research, analysis, and informational purposes only. While we strive for accuracy:
 
-This repository represents a reference implementation and does not constitute a production-ready system, medical device, clinical decision support system, or regulatory-compliant solution.
+- Always verify AI-generated outputs against original clinical sources
 
-Cloud2 Labs makes no representations or warranties, express or implied, regarding the accuracy, reliability, completeness, or suitability of the software or its outputs for any purpose.
+- Do not rely solely on model responses for diagnosis, treatment, or clinical decision-making
 
-This software is not designed to provide medical, legal, financial, or other professional advice and must not be used as a substitute for professional judgment. All outputs require independent human review and validation.
+- Consult qualified healthcare professionals for medical guidance
 
-This software is not HIPAA-compliant by default, and Cloud2 Labs does not provide a Business Associate Agreement (BAA).
+- Validate rigorously and conduct thorough testing before any production or real-world use
 
-By using this repository, you acknowledge and agree to this disclaimer.
-
+For full disclaimer details, see [DISCLAIMER](./Disclaimer.md)
 
 
