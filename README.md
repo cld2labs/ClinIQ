@@ -428,7 +428,6 @@ This software is not designed to provide medical, legal, financial, or other pro
 This software is not HIPAA-compliant by default, and Cloud2 Labs does not provide a Business Associate Agreement (BAA).
 
 By using this repository, you acknowledge and agree to this disclaimer.
----
 
 
 
