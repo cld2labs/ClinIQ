@@ -1,6 +1,6 @@
-# Contributing to CliniQ  Blueprint
+# Contributing to CliniQ 
 
-Thank you for your interest in contributing to the **CliniQ  Blueprint** provided by Cloud2 Labs.
+Thank you for your interest in contributing to the **CliniQ** provided by Cloud2 Labs.
 
 # Guidelines
 
