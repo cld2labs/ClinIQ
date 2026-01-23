@@ -1,6 +1,6 @@
 # Terms and Conditions
 
-This repository contains the **CliniQ Blueprint ** maintained by Cloud2 Labs.
+This repository contains the **CliniQ** maintained by Cloud2 Labs.
 
 By accessing or using this blueprint, you acknowledge and agree that:
 
