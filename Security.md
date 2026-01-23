@@ -1,4 +1,4 @@
-# Security Policy – CliniQ Blueprint
+# Security Policy 
 
 The **CliniQ Blueprint** does not include production-grade security controls.
 
