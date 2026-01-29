@@ -118,7 +118,7 @@ graph TB
 
 ```bash
 git clone [Repo](https://github.com/cld2labs/CliniQ)
-cd CliniQ
+cd ClinIQ
 ```
 
 #### Step 2: Install Backend Dependencies
@@ -174,7 +174,7 @@ The frontend will start on `http://localhost:3000`
 
 ```bash
 git clone [Repo](https://github.com/cld2labs/CliniQ)
-cd CliniQ
+cd ClinIQ
 ```
 
 #### Step 2: Build and Run with Docker Compose
@@ -266,7 +266,7 @@ docker-compose up --build --force-recreate
 ## 📁 Project Structure
 
 ```
-CliniQ/
+ClinIQ/
 ├── README.md                         # Main documentation (this file)
 ├             
 ├── LICENSE  
@@ -417,7 +417,7 @@ This project is licensed under [LICENSE](./License.md) file for details.
 
 ## Disclaimer
 
-**CliniQ** is provided as-is for research, analysis, and informational purposes only. While we strive for accuracy:
+**ClinIQ** is provided as-is for research, analysis, and informational purposes only. While we strive for accuracy:
 
 - Always verify AI-generated outputs against original clinical sources
 
