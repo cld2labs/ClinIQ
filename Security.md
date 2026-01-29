@@ -1,6 +1,6 @@
 # Security Policy 
 
-The **CliniQ** does not include production-grade security controls.
+The **ClinIQ** does not include production-grade security controls.
 
 This repository is not secure by default and must not be used in production without a comprehensive security review.
 
