@@ -117,7 +117,7 @@ graph TB
 #### Step 1: Clone the Repository
 
 ```bash
-git clone [Repo](https://github.com/cld2labs/CliniQ)
+git clone https://github.com/cld2labs/ClinIQ.git
 cd ClinIQ
 ```
 
@@ -173,7 +173,7 @@ The frontend will start on `http://localhost:3000`
 #### Step 1: Clone the Repository
 
 ```bash
-git clone [Repo](https://github.com/cld2labs/CliniQ)
+git clone https://github.com/cld2labs/ClinIQ.git
 cd ClinIQ
 ```
 
