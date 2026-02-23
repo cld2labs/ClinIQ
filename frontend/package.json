@@ -15,6 +15,9 @@
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.20.0"
   },
+  "overrides": {
+    "@remix-run/router": "1.23.2"
+  },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.16",
@@ -23,4 +26,3 @@
     "vite": "^5.0.0"
   }
 }
-
