@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+    volumes:
+      - ./backend/.chromadb:/app/.chromadb
+      - ./backend/uploads:/app/uploads
+    working_dir: /app
+    environment:
+      - FLASK_ENV=development
+      # LLM Provider Configuration (optional, can be set in .env file)
+      # Uncomment and configure as needed
+      # - LLM_PROVIDER=openai
+      # - LLM_API_KEY=${LLM_API_KEY}
+      # - LLM_BASE_URL=https://api.openai.com/v1
+      # - LLM_CHAT_MODEL=gpt-3.5-turbo
+      # - LLM_EMBEDDING_MODEL=text-embedding-3-small
+      # - TEMPERATURE=0.7
+      # - MAX_TOKENS=1000
+      # - VERIFY_SSL=true
+    env_file:
+      - ./backend/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_BACKEND_ENDPOINT=http://backend:5000
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+networks:
+  default:
+    name: cliniq-network
+

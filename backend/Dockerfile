@@ -10,9 +10,10 @@ ENV LC_ALL=C.UTF-8
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (including curl for healthcheck)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
@@ -31,6 +32,10 @@ RUN mkdir -p uploads .chromadb \
 
 # Expose port
 EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=40s \
+    CMD curl -f http://localhost:5000/api/health || exit 1
 
 # Run the application as non-root
 USER appuser

@@ -10,3 +10,5 @@ rank-bm25
 numpy
 scikit-learn
 nltk
+tenacity
+httpx

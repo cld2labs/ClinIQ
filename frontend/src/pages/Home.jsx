@@ -13,17 +13,7 @@ import {
 } from 'lucide-react';
 import RAGPipelineInfo from '../components/RAGPipelineInfo';
 
-/**
- * THE WELCOME MAT:
- * This page introduces ClinIQ to new users.
- * Python analogy: Like a main entry point or a template file.
- */
 export const Home = () => {
-  /**
-   * DATA LISTS (Python Lists):
-   * We define our features and steps as lists of objects (dictionaries).
-   * React will then loop over these to draw the page.
-   */
   const features = [
     {
       icon: HeartPulse,
@@ -67,11 +57,8 @@ export const Home = () => {
 
   return (
     <div className="space-y-20">
-      {/* HERO SECTION: The big banner at the top */}
       <section className="relative pt-12 lg:pt-20 pb-12 overflow-hidden">
         <div className="container mx-auto px-4 lg:grid lg:grid-cols-2 lg:gap-12 items-center">
-
-          {/* Left Side: Text and Buttons */}
           <div className="text-left space-y-8 animate-fadeIn">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 rounded-full text-primary-600 font-medium text-sm">
               <Sparkles className="w-4 h-4" />
@@ -102,7 +89,6 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* Right Side: The 3D Image Visual */}
           <div className="hidden lg:block relative mt-12 lg:mt-0 animate-fadeInSlow">
             <div className="absolute -inset-4 bg-gradient-to-r from-primary-600/10 to-secondary-600/10 rounded-full blur-3xl"></div>
             <div className="relative group">
@@ -113,7 +99,6 @@ export const Home = () => {
                 className="relative rounded-2xl shadow-2xl border border-white/50 backdrop-blur-sm transform group-hover:scale-[1.02] transition duration-500"
               />
 
-              {/* Glassmorphic floating element */}
               <div className="absolute -bottom-6 -left-6 bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/50 max-w-[200px] animate-bounce-slow">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="bg-primary-100 p-2 rounded-lg">
@@ -131,7 +116,6 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* FEATURES SECTION: Looping over the 'features' list defined above */}
       <section>
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
           Designed for Healthcare Excellence
@@ -154,10 +138,8 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* RAG PIPELINE SECTION: Showcase advanced AI techniques */}
       <RAGPipelineInfo />
 
-      {/* HOW IT WORKS SECTION: Looping over the 'steps' list */}
       <section>
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
           Streamlined Workflow
@@ -182,7 +164,6 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* CALL TO ACTION: The dark box at the bottom */}
       <section className="bg-gray-900 rounded-3xl p-12 text-center text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary-600/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary-600/10 rounded-full blur-3xl -ml-32 -mb-32"></div>

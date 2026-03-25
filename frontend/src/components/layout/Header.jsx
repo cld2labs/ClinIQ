@@ -14,7 +14,6 @@ export const Header = () => {
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img
               src="/cloud2labs-logo.png"
@@ -26,7 +25,6 @@ export const Header = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             {navigation.map((item) => (
               <Link
@@ -39,7 +37,6 @@ export const Header = () => {
             ))}
           </div>
 
-          {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100"
@@ -52,7 +49,6 @@ export const Header = () => {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-300 ${
             mobileMenuOpen ? 'max-h-64 pb-4' : 'max-h-0'

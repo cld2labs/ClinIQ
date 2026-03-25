@@ -3,20 +3,10 @@ import { Send, Loader2, Bot, User, FileText } from 'lucide-react';
 import { queryDocuments } from '../services/api';
 import toast from 'react-hot-toast';
 
-/**
- * THE INTERACTIVE CONSULTANT:
- * This component handles the chat bubble display and the actual messaging logic.
- * Python analogy: Like a CLI loop that takes input and prints responses, but with a GUI.
- */
-const ChatInterface = ({ apiKey, hasDocuments, config }) => {
-  // 'messages' is a list (Python list) of all chat history.
+const ChatInterface = ({ hasDocuments, config }) => {
   const [messages, setMessages] = useState([]);
-  // 'input' is the current text in the typing box.
   const [input, setInput] = useState('');
-  // Loading state (spinner).
   const [isLoading, setIsLoading] = useState(false);
-
-  // This helps us automatically scroll to the bottom of the chat.
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -27,26 +17,9 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
     scrollToBottom();
   }, [messages]);
 
-  /**
-   * This runs when you click 'Send' or hit Enter.
-   * It's like the main logic block in a Python script.
-   */
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Stop the page from refreshing (standard web behavior).
+    e.preventDefault();
     if (!input.trim() || isLoading) return;
-
-    // Double-check API key with trim to ensure it's not just whitespace
-    const trimmedKey = apiKey?.trim();
-    if (!trimmedKey || trimmedKey.length < 10) {
-      toast.error('Please enter a valid OpenAI API key first (starts with "sk-")');
-      return;
-    }
-
-    // Additional validation - check if it starts with sk-
-    if (!trimmedKey.startsWith('sk-')) {
-      toast.error('Invalid API key format. OpenAI keys start with "sk-"');
-      return;
-    }
 
     if (!hasDocuments) {
       toast.error('Please upload a document first');
@@ -54,12 +27,8 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
     }
 
     const userMessage = input.trim();
-    setInput(''); // Clear the text box.
+    setInput('');
 
-    /**
-     * Update the screen with the user's message and a blank space for the AI's reply.
-     * We create a new list by adding the new message to the existing list.
-     */
     setMessages((prev) => [
       ...prev,
       { role: 'user', content: userMessage },
@@ -68,27 +37,13 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
     setIsLoading(true);
 
     try {
-      /**
-       * We call our API service. Notice 'onChunk' - this is a "callback".
-       * Backend sends in order: thinking -> content -> metadata (citations)
-       */
-      // Use trimmed key to avoid whitespace issues
-      await queryDocuments(userMessage, trimmedKey, {
-        history: messages, // Pass conversation history for memory
+      await queryDocuments(userMessage, {
+        history: messages,
         useHybridSearch: config.useHybridSearch,
         useReranker: config.useReranker,
         showThinking: config.showThinking,
         onChunk: (chunk) => {
-          /**
-           * PROCESSING THE RESPONSE:
-           * Backend streams in this order:
-           * 1. "citations" - all retrieved sources (sent first)
-           * 2. "thinking" chunks - AI reasoning process (stream character by character)
-           * 3. "content" chunks - final answer (stream character by character)
-           * 4. "clear_citations" - clear citations if no answer found
-           */
           if (chunk.type === 'citations' || chunk.type === 'metadata') {
-            // Citations received FIRST (all retrieved sources)
             setMessages((prev) => {
               const lastIndex = prev.length - 1;
               const lastMessage = prev[lastIndex];
@@ -102,7 +57,6 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
               ];
             });
           } else if (chunk.type === 'thinking') {
-            // APPEND thinking chunks as they stream in
             setMessages((prev) => {
               const lastIndex = prev.length - 1;
               const lastMessage = prev[lastIndex];
@@ -116,7 +70,6 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
               ];
             });
           } else if (chunk.type === 'content') {
-            // APPEND answer chunks as they stream in
             setMessages((prev) => {
               const lastIndex = prev.length - 1;
               const lastMessage = prev[lastIndex];
@@ -130,7 +83,6 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
               ];
             });
           } else if (chunk.type === 'clear_citations') {
-            // Clear citations if LLM said "no information"
             setMessages((prev) => {
               const lastIndex = prev.length - 1;
               const lastMessage = prev[lastIndex];
@@ -159,11 +111,6 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
     }
   };
 
-  /**
-   * The actual visual part of the chat window.
-   * It loops ('maps') over the 'messages' list and draws each message bubble.
-   * Python analogy: Like a 'for message in messages: print(bubble_html)' loop.
-   */
   return (
     <div className="card h-[600px] flex flex-col">
       <div className="flex items-center mb-4 pb-4 border-b border-gray-200">
@@ -184,14 +131,12 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
               key={index}
               className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {/* If it's the AI, show a bot icon */}
               {message.role === 'assistant' && (
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
                   <Bot className="w-5 h-5 text-primary-600" />
                 </div>
               )}
 
-              {/* The message bubble */}
               <div
                 className={`max-w-[80%] rounded-lg p-4 ${message.role === 'user'
                   ? 'bg-primary-600 text-white'
@@ -200,7 +145,6 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
                     : 'bg-gray-100 text-gray-900'
                   }`}
               >
-                {/* Special blue box for the "Thinking" process */}
                 {message.thinking && (
                   <div className="mb-3 p-3 bg-blue-50 rounded border border-blue-200">
                     <p className="text-xs font-semibold text-blue-800 mb-1">AI Thinking Process</p>
@@ -208,16 +152,13 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
                   </div>
                 )}
 
-                {/* The final answer text */}
                 <p className="whitespace-pre-wrap">{message.content}</p>
 
-                {/* Citations section with links to PDFs - at the bottom */}
                 {message.citations && message.citations.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-300">
                     <p className="text-xs font-semibold mb-1">Sources:</p>
                     <ul className="text-xs space-y-1">
                       {message.citations.map((cite, idx) => {
-                        // Logic to turn a citation string into a clickable file link.
                         const parts = cite.split('|');
                         const sourcePart = parts[0].replace('Source:', '').trim();
 
@@ -252,7 +193,6 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
                 )}
               </div>
 
-              {/* If it's the user, show a user icon */}
               {message.role === 'user' && (
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center">
                   <User className="w-5 h-5 text-white" />
@@ -262,7 +202,6 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
           ))
         )}
 
-        {/* Spinner while waiting for the AI */}
         {isLoading && (
           <div className="flex gap-3 justify-start">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
@@ -276,7 +215,6 @@ const ChatInterface = ({ apiKey, hasDocuments, config }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* The typing box at the bottom */}
       <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           type="text"
