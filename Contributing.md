@@ -2,9 +2,9 @@
 
 Thanks for your interest in contributing to ClinIQ.
 
-ClinIQ is an open-source clinical document question-answering app built with a Flask backend, a React frontend, and a retrieval-augmented generation pipeline. We welcome improvements across the codebase, documentation, bug reports, design feedback, and workflow polish.
+ClinIQ is an open-source clinical document question-answering app built with a Flask backend, a React frontend, and a retrieval-augmented generation (RAG) pipeline with hybrid search and intelligent reranking. We welcome improvements across the codebase, documentation, bug reports, design feedback, and workflow polish.
 
-Before you start, please read the relevant section below. It helps keep contributions focused, reviewable, and aligned with the current project setup.
+Before you start, read the relevant section below. It helps keep contributions focused, reviewable, and aligned with the current project setup.
 
 ---
 
@@ -24,6 +24,7 @@ npm --version
 
 # Check Docker
 docker --version
+docker compose version
 
 # Check Git
 git --version
@@ -32,7 +33,7 @@ git --version
 New to contributing?
 
 1. Open an issue or pick an existing one to work on.
-2. Sync your branch from `dev`.
+2. Fork the repo and create a branch from `main`.
 3. Follow the local setup guide below.
 4. Run the app locally and verify your change before opening a PR.
 
@@ -42,13 +43,15 @@ New to contributing?
   - [Get help or ask a question?](#get-help-or-ask-a-question)
   - [Report a bug?](#report-a-bug)
   - [Suggest a new feature?](#suggest-a-new-feature)
+  - [Fork and clone the repo?](#fork-and-clone-the-repo)
   - [Set up ClinIQ locally?](#set-up-cliniq-locally)
   - [Start contributing code?](#start-contributing-code)
   - [Improve the documentation?](#improve-the-documentation)
   - [Submit a pull request?](#submit-a-pull-request)
+- [Branching model](#branching-model)
+- [Commit conventions](#commit-conventions)
 - [Code guidelines](#code-guidelines)
 - [Pull request checklist](#pull-request-checklist)
-- [Branching model](#branching-model)
 - [Thank you](#thank-you)
 
 ---
@@ -57,21 +60,54 @@ New to contributing?
 
 ### Get help or ask a question?
 
-- Start with the main project docs in [`README.md`](./README.md), [`Docs/QUICKSTART.md`](./Docs/QUICKSTART.md), and [`Docs/PROJECT_DOCUMENTATION.md`](./Docs/PROJECT_DOCUMENTATION.md).
+- Start with the main project docs in [`README.md`](./README.md), [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md), [`SECURITY.md`](./SECURITY.md), and [`Docs/QUICKSTART.md`](./Docs/QUICKSTART.md).
 - If something is unclear, open a GitHub issue with your question and the context you already checked.
 
 ### Report a bug?
 
 1. Search existing issues first.
 2. If the bug is new, open a GitHub issue.
-3. Include the environment, what happened, what you expected, and exact steps to reproduce.
-4. Add screenshots, logs, or request/response details if relevant.
+3. Include your environment, what happened, what you expected, and exact steps to reproduce.
+4. Add screenshots, logs, request details, or response payloads if relevant.
 
 ### Suggest a new feature?
 
 1. Open a GitHub issue describing the feature.
 2. Explain the problem, who it helps, and how it fits ClinIQ.
 3. If the change is large, get alignment in the issue before writing code.
+
+### Fork and clone the repo?
+
+All contributions should come from a **fork** of the repository. This keeps the upstream repo clean and lets maintainers review changes via pull requests.
+
+#### Step 1: Fork the repository
+
+Click the **Fork** button at the top-right of the [ClinIQ repo](https://github.com/cld2labs/ClinIQ) to create a copy under your GitHub account.
+
+#### Step 2: Clone your fork
+
+```bash
+git clone https://github.com/<your-username>/ClinIQ.git
+cd ClinIQ
+```
+
+#### Step 3: Add the upstream remote
+
+```bash
+git remote add upstream https://github.com/cld2labs/ClinIQ.git
+```
+
+This lets you pull in the latest changes from the original repo.
+
+#### Step 4: Create a branch
+
+Always branch off `main`. See [Branching model](#branching-model) for naming conventions.
+
+```bash
+git checkout main
+git pull upstream main
+git checkout -b <type>/<short-description>
+```
 
 ### Set up ClinIQ locally?
 
@@ -80,21 +116,29 @@ New to contributing?
 - Python 3.10+
 - Node.js 18+ and npm
 - Git
-- An OpenAI API key
+- Docker with Docker Compose v2
+- OpenAI API key (set via environment variable in backend/.env)
 
 #### Option 1: Local development
 
-##### Step 1: Clone the repository
+##### Step 1: Configure environment variables
+
+Create a backend `.env` file for the API key:
 
 ```bash
-git clone git@github-work:cld2labs/ClinIQ.git
-cd ClinIQ
+cd backend
+echo "OPENAI_API_KEY=your_api_key_here" > .env
+cd ..
 ```
+
+Or configure your API key through environment variables at runtime.
 
 ##### Step 2: Install backend dependencies
 
 ```bash
 cd backend
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cd ..
 ```
@@ -107,23 +151,7 @@ npm install
 cd ..
 ```
 
-##### Step 4: Configure environment variables
-
-Create `configuration/.env` from `configuration/.env.example` if you want to provide an API key through environment variables:
-
-```bash
-cp configuration/.env.example configuration/.env
-```
-
-Minimum example:
-
-```env
-OPENAI_API_KEY=your_api_key_here
-```
-
-You can also enter the API key in the app's configuration panel at runtime.
-
-##### Step 5: Start the backend
+##### Step 4: Start the backend
 
 ```bash
 cd backend
@@ -153,14 +181,7 @@ The frontend runs at `http://localhost:3000`.
 From the repository root:
 
 ```bash
-docker-compose -f configuration/docker-compose.yml up --build
-```
-
-Or from the `configuration` directory:
-
-```bash
-cd configuration
-docker-compose up --build
+docker compose up --build
 ```
 
 This starts:
@@ -178,11 +199,11 @@ This starts:
 ### Start contributing code?
 
 1. Open or choose an issue.
-2. Create a feature branch from `dev`.
+2. [Fork the repo](#fork-and-clone-the-repo) and create a feature branch from `main`.
 3. Keep the change focused on a single problem.
 4. Run the app locally and verify the affected workflow.
-5. Update docs when behavior, setup, or architecture changes.
-6. Open a pull request back to `dev`.
+5. Update docs when behavior, setup, configuration, or architecture changes.
+6. Open a pull request back to upstream `main`.
 
 ### Improve the documentation?
 
@@ -195,15 +216,60 @@ Documentation updates are welcome. Relevant files currently live in:
 
 ### Submit a pull request?
 
-Follow the checklist below before opening your PR. Your pull request should:
+1. Push your branch to your fork.
+2. Go to the [ClinIQ repo](https://github.com/cld2labs/ClinIQ) and click **Compare & pull request**.
+3. Set the base branch to `main`.
+4. Fill in the PR template (it loads automatically).
+5. Submit the pull request.
 
-- Stay focused on one issue or topic.
-- Explain what changed and why.
-- Include manual verification steps.
-- Include screenshots or short recordings for UI changes.
-- Reference the related GitHub issue when applicable.
+A maintainer will review your PR. You may be asked to make changes — push additional commits to the same branch and they will be added to the PR automatically.
 
-Note: this repository currently includes automated security scanning on pull requests via GitHub Actions. If your PR triggers a scan failure, address it before requesting review.
+Before opening your PR, sync with upstream to avoid merge conflicts:
+
+```bash
+git fetch upstream
+git rebase upstream/main
+```
+
+Follow the checklist below and the [Pull request checklist](#pull-request-checklist) section.
+
+---
+
+## Branching model
+
+- Fork the repo and base new work from `main`.
+- Open pull requests against upstream `main`.
+- Use descriptive branch names with a type prefix:
+
+| Prefix | Use |
+|---|---|
+| `feat/` | New features or enhancements |
+| `fix/` | Bug fixes |
+| `docs/` | Documentation changes |
+| `refactor/` | Code restructuring (no behavior change) |
+| `chore/` | Dependency updates, CI changes, tooling |
+
+Examples: `feat/add-pdf-support`, `fix/embedding-timeout`, `docs/update-quickstart`
+
+---
+
+## Commit conventions
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>(<optional scope>): <short description>
+```
+
+Examples:
+
+```bash
+git commit -m "feat(api): add hybrid search support"
+git commit -m "fix(ui): resolve citation rendering issue"
+git commit -m "docs: update troubleshooting guide"
+```
+
+Keep commits focused — one logical change per commit.
 
 ---
 
@@ -211,11 +277,11 @@ Note: this repository currently includes automated security scanning on pull req
 
 - Follow the existing project structure and patterns before introducing new abstractions.
 - Keep frontend changes consistent with the React + Vite + Tailwind setup already in use.
-- Keep backend changes consistent with the Flask API and utility modules in `backend/utils`.
+- Keep backend changes consistent with the Flask service structure in `backend/`.
 - Avoid unrelated refactors in the same pull request.
-- Do not commit secrets, API keys, uploaded documents, or generated local database files.
+- Do not commit secrets, API keys, uploaded files, local `.env` files, or generated artifacts.
 - Prefer clear, small commits and descriptive pull request summaries.
-- Update documentation when contributor setup, behavior, or API usage changes.
+- Update documentation when contributor setup, behavior, environment variables, or API usage changes.
 
 ---
 
@@ -230,19 +296,9 @@ Before submitting your pull request, confirm the following:
 - You kept the pull request scoped to one issue or topic.
 - You added screenshots for UI changes when relevant.
 - You did not commit secrets or local generated data.
-- You are opening the pull request against `dev`.
-- You reviewed any GitHub Action scan failures and resolved them.
+- You are opening the pull request against `main`.
 
 If one or more of these are missing, the pull request may be sent back for changes before review.
-
----
-
-## Branching model
-
-- Base new work from `dev`.
-- Open pull requests against `dev`.
-- Use descriptive branch names such as `fix/upload-error-handling` or `docs/update-contributing-guide`.
-- Rebase or merge the latest `dev` before opening your PR if your branch has drifted.
 
 ---
 

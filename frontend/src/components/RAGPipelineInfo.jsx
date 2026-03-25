@@ -1,9 +1,5 @@
 import { Brain, Search, Target, Sparkles, Zap, Network } from 'lucide-react';
 
-/**
- * RAG PIPELINE INFORMATION COMPONENT
- * Displays the advanced retrieval algorithms and AI models used in CliniQ
- */
 const RAGPipelineInfo = ({ compact = false }) => {
   const features = [
     {
