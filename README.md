@@ -34,6 +34,11 @@ An AI-powered clinical document analysis platform using RAG (Retrieval-Augmented
     - [Using ClinIQ](#using-cliniq)
     - [Advanced Features](#advanced-features)
     - [Best Practices](#best-practices)
+  - [Inference Benchmarks](#inference-benchmarks)
+  - [Model Capabilities](#model-capabilities)
+    - [Meta-Llama-3.2-3B-Instruct](#meta-llama-32-3b-instruct)
+    - [GPT-4o-mini](#gpt-4o-mini)
+    - [Comparison Summary](#comparison-summary)
   - [LLM Provider Configuration](#llm-provider-configuration)
     - [OpenAI](#openai)
     - [Groq](#groq)
@@ -591,6 +596,93 @@ ClinIQ/
    - Process documents before starting queries
    - Enable hybrid search for comprehensive results
    - Use reranking for higher quality (with slight latency trade-off)
+
+---
+
+## Inference Benchmarks
+
+The table below compares inference performance across different providers, deployment modes, and hardware profiles using a standardized clinical Q&A workload (averaged over 3 runs).
+
+
+| Provider       | Model                                               | Deployment           | Context Window | Avg Input Tokens | Avg Output Tokens | Avg Tokens / Request | P50 Latency (ms) | P95 Latency (ms) | Throughput (req/s) | Hardware                               |
+| -------------- | --------------------------------------------------- | -------------------- | -------------- | ---------------- | ----------------- | -------------------- | ---------------- | ---------------- | ------------------ | -------------------------------------- |
+| vLLM           | `meta-llama/Llama-3.2-3B-Instruct` + `BAAI/bge-base-en-v1.5` | Local                | 8.1K           | 1223.8           | 361.73            | 1585.53              | 28,553           | 62,149           | 0.033              | Apple Silicon Metal (Macbook Pro M4)   |
+| OPEA EI / SLM  | `meta-llama/Llama-3.2-3B-Instruct` + `BAAI/bge-base-en-v1.5` | CPU (Xeon)           | 8.1K           | 1195.80          | 141.27            | 1337.07              | 4,389.48         | 11,188.87        | 0.183              | CPU only                               |
+| Cloud LLM      | `gpt-4o-mini` + `text-embedding-3-small`            | API (Cloud)          | 128K           | 1173.80          | 88.33             | 1262.13              | 2,846.13         | 4200.51          | 0.359              | Cloud GPUs                             |
+
+
+> **Notes:**
+>
+> - All benchmarks use the same ClinIQ RAG pipeline with hybrid search and reranking. Token counts may vary slightly per run due to non-deterministic model output and query complexity.
+> - vLLM on Apple Silicon uses Metal (MPS) GPU acceleration — running it inside Docker would fall back to CPU-only inference.
+> - [Intel OPEA Enterprise Inference](https://github.com/opea-project/Enterprise-Inference) runs on Intel Xeon CPUs without GPU acceleration.
+
+---
+
+## Model Capabilities
+
+### Meta-Llama-3.2-3B-Instruct
+
+A 3-billion-parameter open-weight instruction-tuned model from Meta (September 2024 release), optimized for on-prem and edge deployment.
+
+
+| Attribute                   | Details                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Parameters**              | 3.2B total                                                                                        |
+| **Architecture**            | Transformer with Grouped Query Attention (GQA)                                                     |
+| **Context Window**          | 8,192 tokens (8K) native                                                                          |
+| **Reasoning Mode**          | Standard instruction-following                                                                    |
+| **Tool / Function Calling** | Supported via structured prompts                                                                  |
+| **Structured Output**       | JSON-structured responses supported                                                               |
+| **Multilingual**            | English-focused with multilingual capabilities                                                    |
+| **Benchmarks**              | MMLU: 63.4%, GSM8K: 75.7%, HumanEval: 58.5%                                                       |
+| **Quantization Formats**    | GGUF, AWQ (int4), GPTQ (int4), MLX                                                                |
+| **Inference Runtimes**      | Ollama, vLLM, llama.cpp, LMStudio, TGI (Text Generation Inference)                                |
+| **Fine-Tuning**             | Full fine-tuning and adapter-based (LoRA); community adapters available                            |
+| **License**                 | Llama 3.2 Community License (permits commercial use with conditions)                               |
+| **Deployment**              | Local, on-prem, air-gapped, cloud — full data sovereignty                                          |
+
+
+### GPT-4o-mini
+
+OpenAI's cost-efficient multimodal model, accessible exclusively via cloud API.
+
+
+| Attribute                   | Details                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------- |
+| **Parameters**              | Not publicly disclosed                                                            |
+| **Architecture**            | Multimodal Transformer (text + image input, text output)                          |
+| **Context Window**          | 128,000 tokens input / 16,384 tokens max output                                   |
+| **Reasoning Mode**          | Standard inference (no explicit chain-of-thought toggle)                          |
+| **Tool / Function Calling** | Supported; parallel function calling                                              |
+| **Structured Output**       | JSON mode and strict JSON schema adherence supported                              |
+| **Multilingual**            | Broad multilingual support                                                        |
+| **Benchmarks**              | MMLU: ~87%, strong HumanEval and MBPP scores                                      |
+| **Pricing**                 | $0.15 / 1M input tokens, $0.60 / 1M output tokens (Batch API: 50% discount)       |
+| **Fine-Tuning**             | Supervised fine-tuning via OpenAI API                                             |
+| **License**                 | Proprietary (OpenAI Terms of Use)                                                 |
+| **Deployment**              | Cloud-only — OpenAI API or Azure OpenAI Service. No self-hosted or on-prem option |
+| **Knowledge Cutoff**        | October 2023                                                                      |
+
+
+### Comparison Summary
+
+
+| Capability                      | Meta-Llama-3.2-3B-Instruct       | GPT-4o-mini                       |
+| ------------------------------- | -------------------------------- | --------------------------------- |
+| Clinical Q&A with RAG           | Yes                              | Yes                               |
+| Function / tool calling         | Yes                              | Yes                               |
+| JSON structured output          | Yes                              | Yes                               |
+| On-prem / air-gapped deployment | Yes                              | No                                |
+| Data sovereignty                | Full (weights run locally)       | No (data sent to cloud API)       |
+| Open weights                    | Yes (Llama 3.2 Community License)| No (proprietary)                  |
+| Custom fine-tuning              | Full fine-tuning + LoRA adapters | Supervised fine-tuning (API only) |
+| Quantization for edge devices   | GGUF / AWQ / GPTQ / MLX          | N/A                               |
+| Multimodal (image input)        | No                               | Yes                               |
+| Native context window           | 8K                               | 128K                              |
+
+
+> Both models support clinical Q&A with RAG, function calling, and JSON-structured output. However, only Meta-Llama-3.2-3B offers open weights, data sovereignty, and local deployment flexibility — making it suitable for air-gapped, regulated, or cost-sensitive clinical environments. GPT-4o-mini offers lower latency and higher throughput via OpenAI's cloud infrastructure, with added multimodal capabilities and larger context window.
 
 ---
 
