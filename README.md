@@ -607,13 +607,13 @@ The table below compares inference performance across different providers, deplo
 | Provider       | Model                                               | Deployment           | Context Window | Avg Input Tokens | Avg Output Tokens | Avg Tokens / Request | P50 Latency (ms) | P95 Latency (ms) | Throughput (req/s) | Hardware                               |
 | -------------- | --------------------------------------------------- | -------------------- | -------------- | ---------------- | ----------------- | -------------------- | ---------------- | ---------------- | ------------------ | -------------------------------------- |
 | vLLM           | `meta-llama/Llama-3.2-3B-Instruct` + `BAAI/bge-base-en-v1.5` | Local                | 8.1K           | 1223.8           | 361.73            | 1585.53              | 28,553           | 62,149           | 0.033              | Apple Silicon Metal (Macbook Pro M4)   |
-| OPEA EI / SLM  | `meta-llama/Llama-3.2-3B-Instruct` + `BAAI/bge-base-en-v1.5` | CPU (Xeon)           | 8.1K           | 1195.80          | 141.27            | 1337.07              | 4,389.48         | 11,188.87        | 0.183              | CPU only                               |
-| Cloud LLM      | `gpt-4o-mini` + `text-embedding-3-small`            | API (Cloud)          | 128K           | 1173.80          | 88.33             | 1262.13              | 2,846.13         | 4200.51          | 0.359              | Cloud GPUs                             |
+|[Intel OPEA EI](https://github.com/opea-project/Enterprise-Inference)  | `meta-llama/Llama-3.2-3B-Instruct` + `BAAI/bge-base-en-v1.5` | CPU (Xeon)           | 8.1K           | 1195.80          | 141.27            | 1337.07              | 4,389.48         | 11,188.87        | 0.183              | CPU only                               |
+| Cloud LLM      | `gpt-4o-mini` + `text-embedding-3-small`            | API (Cloud)          | 128K           | 1173.80          | 88.33             | 1262.13              | 2,846.13         | 4200.51          | 0.359              | N/A                            |
 
 
 > **Notes:**
 >
-> - All benchmarks use the same ClinIQ RAG pipeline with hybrid search and reranking. Token counts may vary slightly per run due to non-deterministic model output and query complexity.
+> - All benchmarks use the same ClinIQ RAG pipeline with hybrid search. Token counts may vary slightly per run due to non-deterministic model output and query complexity.
 > - vLLM on Apple Silicon uses Metal (MPS) GPU acceleration — running it inside Docker would fall back to CPU-only inference.
 > - [Intel OPEA Enterprise Inference](https://github.com/opea-project/Enterprise-Inference) runs on Intel Xeon CPUs without GPU acceleration.
 
