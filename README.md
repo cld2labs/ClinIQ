@@ -34,7 +34,7 @@ An AI-powered clinical document analysis platform using RAG (Retrieval-Augmented
     - [Using ClinIQ](#using-cliniq)
     - [Advanced Features](#advanced-features)
     - [Best Practices](#best-practices)
-  - [Inference Benchmarks](#inference-benchmarks)
+  - [Inference Metrics](#inference-metrics)
   - [Model Capabilities](#model-capabilities)
     - [Meta-Llama-3.2-3B-Instruct](#meta-llama-32-3b-instruct)
     - [GPT-4o-mini](#gpt-4o-mini)
@@ -599,7 +599,7 @@ ClinIQ/
 
 ---
 
-## Inference Benchmarks
+## Inference Metrics
 
 The table below compares inference performance across different providers, deployment modes, and hardware profiles using a standardized clinical Q&A workload (averaged over 3 runs).
 
@@ -613,7 +613,7 @@ The table below compares inference performance across different providers, deplo
 
 > **Notes:**
 >
-> - All benchmarks use the same ClinIQ RAG pipeline with hybrid search. Token counts may vary slightly per run due to non-deterministic model output and query complexity.
+> - All metrics use the same ClinIQ RAG pipeline with hybrid search. Token counts may vary slightly per run due to non-deterministic model output and query complexity.
 > - vLLM on Apple Silicon uses Metal (MPS) GPU acceleration — running it inside Docker would fall back to CPU-only inference.
 > - [Intel OPEA Enterprise Inference](https://github.com/opea-project/Enterprise-Inference) runs on Intel Xeon CPUs without GPU acceleration.
 
